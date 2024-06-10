@@ -4,13 +4,21 @@ import { useOrders } from "../context/OrderContext";
 
 const UpdateOrder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getOrderById, updateOrder, error, clearError, salas, comidas } =
-    useOrders();
+  const {
+    getOrderById,
+    updateOrder,
+    error,
+    clearError,
+    salas,
+    comidas,
+    changeOrderState,
+  } = useOrders();
 
   const [order, setOrder] = useState<any>(null);
-  const [platosSeleccionados, setPlatosSeleccionados] = useState([
-    { plato_id: "", cantidad: 1 },
-  ]);
+  const [platosSeleccionados, setPlatosSeleccionados] = useState<
+    { plato_id: string; cantidad: number }[]
+  >([]);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -24,6 +32,25 @@ const UpdateOrder: React.FC = () => {
     };
     fetchOrder();
   }, [id, getOrderById]);
+
+  useEffect(() => {
+    const calculateTotal = () => {
+      let totalSum = 0;
+      if (comidas) {
+        platosSeleccionados.forEach((plato) => {
+          const foundPlato = comidas
+            .flatMap((comida) => comida.platos)
+            .find((p) => p._id === plato.plato_id);
+          if (foundPlato) {
+            totalSum += foundPlato.precio * plato.cantidad;
+          }
+        });
+      }
+      setTotal(totalSum);
+    };
+
+    calculateTotal();
+  }, [platosSeleccionados, comidas]);
 
   const handleUpdateOrder = () => {
     if (order) {
@@ -47,9 +74,37 @@ const UpdateOrder: React.FC = () => {
     setPlatosSeleccionados(newPlatos);
   };
 
+  const handlePlatoChange = (index: number, plato_id: string) => {
+    const existingPlato = platosSeleccionados.find(
+      (plato) => plato.plato_id === plato_id
+    );
+
+    if (existingPlato) {
+      const updatedPlatos = platosSeleccionados.map((plato) =>
+        plato.plato_id === plato_id
+          ? { ...plato, cantidad: plato.cantidad + 1 }
+          : plato
+      );
+      setPlatosSeleccionados(updatedPlatos);
+    } else {
+      const newPlatos = [...platosSeleccionados];
+      newPlatos[index].plato_id = plato_id;
+      setPlatosSeleccionados(newPlatos);
+    }
+  };
+
+  const handleStateChange = async (newState: string) => {
+    if (order) {
+      await changeOrderState(order._id, newState);
+      setOrder({ ...order, estado: newState });
+    }
+  };
+
   if (!order) {
     return <div>Loading...</div>;
   }
+
+  const isDisabled = order.estado === "closed";
 
   return (
     <div>
@@ -69,18 +124,15 @@ const UpdateOrder: React.FC = () => {
           <select
             id={`platoSelect${index}`}
             value={plato.plato_id}
-            onChange={(e) => {
-              const newPlatos = [...platosSeleccionados];
-              newPlatos[index].plato_id = e.target.value;
-              setPlatosSeleccionados(newPlatos);
-            }}
+            onChange={(e) => handlePlatoChange(index, e.target.value)}
+            disabled={isDisabled}
           >
             <option value="">Seleccione un plato</option>
             {comidas.map((comida) => (
               <optgroup key={comida._id} label={comida.tipo}>
-                {comida.platos.map((plato) => (
-                  <option key={plato._id} value={plato._id}>
-                    {plato.nombre}
+                {comida.platos.map((platoItem) => (
+                  <option key={platoItem._id} value={platoItem._id}>
+                    {platoItem.nombre}
                   </option>
                 ))}
               </optgroup>
@@ -95,12 +147,40 @@ const UpdateOrder: React.FC = () => {
               newPlatos[index].cantidad = Number(e.target.value);
               setPlatosSeleccionados(newPlatos);
             }}
+            disabled={isDisabled}
           />
-          <button onClick={() => handleRemovePlato(index)}>Eliminar</button>
+          <span>
+            {comidas
+              ? (comidas
+                  .flatMap((comida) => comida.platos)
+                  .find((p) => p._id === plato.plato_id)?.precio ?? 0) *
+                  plato.cantidad || 0
+              : 0}
+          </span>
+          <button
+            onClick={() => handleRemovePlato(index)}
+            disabled={isDisabled}
+          >
+            Eliminar
+          </button>
         </div>
       ))}
-      <button onClick={handleAddPlato}>Añadir Plato</button>
-      <button onClick={handleUpdateOrder}>Actualizar Pedido</button>
+      <button onClick={handleAddPlato} disabled={isDisabled}>
+        Añadir Plato
+      </button>
+      <div>
+        <strong>Total:</strong> {total.toFixed(2)}
+      </div>
+      <button onClick={handleUpdateOrder} disabled={isDisabled}>
+        Actualizar Pedido
+      </button>
+      <button
+        onClick={() =>
+          handleStateChange(order.estado === "open" ? "closed" : "open")
+        }
+      >
+        {order.estado === "open" ? "Cerrar Pedido" : "Reabrir Pedido"}
+      </button>
     </div>
   );
 };

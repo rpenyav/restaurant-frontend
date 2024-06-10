@@ -5,14 +5,24 @@ import { useNavigate } from "react-router-dom";
 
 const OrderForm: React.FC = () => {
   const { userId } = useUser();
-  const { addOrder, fetchOrders, orders, error, clearError, salas, comidas } =
-    useOrders();
+  const {
+    addOrder,
+    fetchOrders,
+    orders,
+    error,
+    clearError,
+    salas,
+    comidas,
+    changeOrderState,
+    deleteOrder,
+  } = useOrders();
   const navigate = useNavigate();
 
   const [mesaId, setMesaId] = useState("");
   const [platosSeleccionados, setPlatosSeleccionados] = useState([
-    { plato_id: "", cantidad: 1 },
+    { plato_id: "", cantidad: 0 },
   ]);
+  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
@@ -20,15 +30,34 @@ const OrderForm: React.FC = () => {
     fetchOrders(page, limit);
   }, [page, limit, fetchOrders]);
 
+  useEffect(() => {
+    const calculateTotal = () => {
+      let totalSum = 0;
+      if (comidas) {
+        platosSeleccionados.forEach((plato) => {
+          const foundPlato = comidas
+            .flatMap((comida) => comida.platos)
+            .find((p) => p._id === plato.plato_id);
+          if (foundPlato) {
+            totalSum += foundPlato.precio * plato.cantidad;
+          }
+        });
+      }
+      setTotal(totalSum);
+    };
+
+    calculateTotal();
+  }, [platosSeleccionados, comidas]);
+
   const handleAddOrder = () => {
     const order = {
       mesa_id: mesaId,
       estado: "open",
       platos: platosSeleccionados,
-      total: 0,
+      total,
       impuesto: 0,
       propina: 0,
-      total_con_impuesto_y_propina: 0,
+      total_con_impuesto_y_propina: total,
       camarero_id: userId,
       fecha: new Date().toISOString(),
     };
@@ -39,13 +68,41 @@ const OrderForm: React.FC = () => {
   const handleAddPlato = () => {
     setPlatosSeleccionados([
       ...platosSeleccionados,
-      { plato_id: "", cantidad: 1 },
+      { plato_id: "", cantidad: 0 },
     ]);
   };
 
   const handleRemovePlato = (index: number) => {
     const newPlatos = platosSeleccionados.filter((_, i) => i !== index);
     setPlatosSeleccionados(newPlatos);
+  };
+
+  const handlePlatoChange = (index: number, plato_id: string) => {
+    const existingPlato = platosSeleccionados.find(
+      (plato) => plato.plato_id === plato_id
+    );
+
+    if (existingPlato) {
+      const updatedPlatos = platosSeleccionados.map((plato) =>
+        plato.plato_id === plato_id
+          ? { ...plato, cantidad: plato.cantidad + 1 }
+          : plato
+      );
+      setPlatosSeleccionados(updatedPlatos);
+    } else {
+      const newPlatos = [...platosSeleccionados];
+      newPlatos[index].plato_id = plato_id;
+      newPlatos[index].cantidad = 1; // Asignar una cantidad inicial de 1 al seleccionar un plato
+      setPlatosSeleccionados(newPlatos);
+    }
+  };
+
+  const handleStateChange = (id: string, newState: string) => {
+    changeOrderState(id, newState);
+  };
+
+  const handleDeleteOrder = (id: string) => {
+    deleteOrder(id);
   };
 
   return (
@@ -81,11 +138,7 @@ const OrderForm: React.FC = () => {
           <select
             id={`platoSelect${index}`}
             value={plato.plato_id}
-            onChange={(e) => {
-              const newPlatos = [...platosSeleccionados];
-              newPlatos[index].plato_id = e.target.value;
-              setPlatosSeleccionados(newPlatos);
-            }}
+            onChange={(e) => handlePlatoChange(index, e.target.value)}
           >
             <option value="">Seleccione un plato</option>
             {comidas.map((comida) => (
@@ -108,10 +161,21 @@ const OrderForm: React.FC = () => {
               setPlatosSeleccionados(newPlatos);
             }}
           />
+          <span>
+            {comidas
+              ? (comidas
+                  .flatMap((comida) => comida.platos)
+                  .find((p) => p._id === plato.plato_id)?.precio ?? 0) *
+                  plato.cantidad || 0
+              : 0}
+          </span>
           <button onClick={() => handleRemovePlato(index)}>Eliminar</button>
         </div>
       ))}
       <button onClick={handleAddPlato}>Añadir Plato</button>
+      <div>
+        <strong>Total:</strong> {total.toFixed(2)}
+      </div>
       <button onClick={handleAddOrder}>Crear Pedido</button>
       <h2>Pedidos</h2>
       <table>
@@ -128,8 +192,22 @@ const OrderForm: React.FC = () => {
               <td>{order.mesa_id}</td>
               <td>{order.estado}</td>
               <td>
+                {order.estado === "open" ? (
+                  <button
+                    onClick={() => handleStateChange(order._id!, "closed")}
+                  >
+                    Cerrar
+                  </button>
+                ) : (
+                  <button onClick={() => handleStateChange(order._id!, "open")}>
+                    Reabrir
+                  </button>
+                )}
                 <button onClick={() => navigate(`/update-order/${order._id}`)}>
                   Actualizar
+                </button>
+                <button onClick={() => handleDeleteOrder(order._id!)}>
+                  Eliminar
                 </button>
               </td>
             </tr>

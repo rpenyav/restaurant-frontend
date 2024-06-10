@@ -11,6 +11,7 @@ interface Plato {
   _id: string;
   nombre: string;
   tipo: string;
+  precio: number; // Añadir la propiedad precio
 }
 
 interface Mesa {
@@ -51,6 +52,8 @@ interface OrderContextType {
   addOrder: (order: Order) => void;
   getOrderById: (id: string) => Promise<Order | null>;
   updateOrder: (order: Order) => void;
+  changeOrderState: (id: string, newState: string) => void;
+  deleteOrder: (id: string) => void;
   clearError: () => void;
   salas: Sala[];
   comidas: Comida[];
@@ -122,6 +125,38 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     }
   };
 
+  const changeOrderState = async (id: string, newState: string) => {
+    try {
+      const response = await axios.put(`/pedidos/${id}`, { estado: newState });
+      setOrders(
+        orders.map((order) =>
+          order._id === id ? { ...order, estado: newState } : order
+        )
+      );
+      setError(null);
+    } catch (error: any) {
+      setError(
+        `Error changing order state: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
+
+  const deleteOrder = async (id: string) => {
+    try {
+      await axios.delete(`/pedidos/${id}`);
+      setOrders(orders.filter((order) => order._id !== id));
+      setError(null);
+    } catch (error: any) {
+      setError(
+        `Error deleting order: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  };
+
   const clearError = () => {
     setError(null);
   };
@@ -158,6 +193,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
         addOrder,
         getOrderById,
         updateOrder,
+        changeOrderState,
+        deleteOrder,
         clearError,
         salas,
         comidas,
