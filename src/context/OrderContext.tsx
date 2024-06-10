@@ -4,46 +4,13 @@ import React, {
   useState,
   ReactNode,
   useEffect,
+  useCallback,
 } from "react";
 import axios from "../api/axios";
 
-interface Plato {
-  _id: string;
-  nombre: string;
-  tipo: string;
-  precio: number; // Añadir la propiedad precio
-}
-
-interface Mesa {
-  _id: string;
-  numero: number;
-  capacidad: number;
-}
-
-interface Sala {
-  _id: string;
-  nombre: string;
-  mesas: Mesa[];
-}
-
-interface Comida {
-  _id: string;
-  tipo: string;
-  platos: Plato[];
-}
-
-interface Order {
-  _id?: string;
-  mesa_id: string;
-  estado: string;
-  platos: { plato_id: string; cantidad: number }[];
-  total: number;
-  impuesto: number;
-  propina: number;
-  total_con_impuesto_y_propina: number;
-  camarero_id: string;
-  fecha: string;
-}
+import { Comida } from "../interfaces/comida";
+import { Sala } from "../interfaces/sala";
+import { Order } from "../interfaces/order";
 
 interface OrderContextType {
   orders: Order[];
@@ -73,7 +40,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const [salas, setSalas] = useState<Sala[]>([]);
   const [comidas, setComidas] = useState<Comida[]>([]);
 
-  const fetchOrders = async (page: number, limit: number) => {
+  const fetchOrders = useCallback(async (page: number, limit: number) => {
     try {
       const response = await axios.get(`/pedidos?page=${page}&limit=${limit}`);
       setOrders(response.data.data);
@@ -81,7 +48,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     } catch (error) {
       setError("Error fetching orders");
     }
-  };
+  }, []);
 
   const addOrder = async (order: Order) => {
     try {
