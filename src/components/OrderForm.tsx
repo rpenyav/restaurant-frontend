@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../context/UserContext";
 import { useOrders } from "../context/OrderContext";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const OrderForm: React.FC = () => {
-  const { userId } = useUser();
+  const { user } = useAuth(); // Reemplazar useUser con useAuth
   const {
     addOrder,
     fetchOrders,
@@ -58,7 +59,7 @@ const OrderForm: React.FC = () => {
       impuesto: 0,
       propina: 0,
       total_con_impuesto_y_propina: total,
-      camarero_id: userId,
+      camarero_id: user?._id ?? "",
       fecha: new Date().toISOString(),
     };
 
@@ -204,7 +205,7 @@ const OrderForm: React.FC = () => {
                   </button>
                 )}
                 <button onClick={() => navigate(`/update-order/${order._id}`)}>
-                  Actualizar
+                  Ver pedido
                 </button>
                 <button onClick={() => handleDeleteOrder(order._id!)}>
                   Eliminar

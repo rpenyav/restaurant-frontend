@@ -1,9 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../context/OrderContext";
+
+interface Plato {
+  plato_id: string;
+  cantidad: number;
+}
+
+interface Order {
+  _id?: string;
+  mesa_id: string;
+  estado: string;
+  platos: Plato[];
+  total: number;
+  impuesto: number;
+  propina: number;
+  total_con_impuesto_y_propina: number;
+  camarero_id: string;
+  fecha: string;
+}
 
 const UpdateOrder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const {
     getOrderById,
     updateOrder,
@@ -14,10 +34,8 @@ const UpdateOrder: React.FC = () => {
     changeOrderState,
   } = useOrders();
 
-  const [order, setOrder] = useState<any>(null);
-  const [platosSeleccionados, setPlatosSeleccionados] = useState<
-    { plato_id: string; cantidad: number }[]
-  >([]);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [platosSeleccionados, setPlatosSeleccionados] = useState<Plato[]>([]);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
@@ -57,6 +75,7 @@ const UpdateOrder: React.FC = () => {
       const updatedOrder = {
         ...order,
         platos: platosSeleccionados,
+        camarero_id: user?._id || order.camarero_id, // Asegurar que camarero_id está presente
       };
       updateOrder(updatedOrder);
     }
@@ -95,7 +114,7 @@ const UpdateOrder: React.FC = () => {
 
   const handleStateChange = async (newState: string) => {
     if (order) {
-      await changeOrderState(order._id, newState);
+      await changeOrderState(order._id!, newState);
       setOrder({ ...order, estado: newState });
     }
   };
