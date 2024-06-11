@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../context/UserContext";
 import { useOrders } from "../context/OrderContext";
 import { Plato } from "../interfaces/plato";
-import { Order } from "../interfaces/order";
+import { OrderToCreate } from "../interfaces/order";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import QuantitySelector from "./QuantitySelector";
 
 const OrderForm: React.FC = () => {
   const { userId } = useUser();
@@ -32,14 +35,22 @@ const OrderForm: React.FC = () => {
   }, [platosSeleccionados, comidas]);
 
   const handleAddOrder = () => {
-    const order: Order = {
+    const validPlatos = platosSeleccionados
+      .filter((plato) => plato._id && (plato.cantidad ?? 0) > 0)
+      .map((plato) => ({
+        plato_id: plato._id,
+        comidaId: plato.comidaId,
+        cantidad: plato.cantidad ?? 0,
+      }));
+
+    const order: OrderToCreate = {
       mesa_id: mesaId,
       estado: "open",
-      platos: platosSeleccionados,
-      total,
+      platos: validPlatos,
+      total: 0,
       impuesto: 0,
       propina: 0,
-      total_con_impuesto_y_propina: total,
+      total_con_impuesto_y_propina: 0,
       camarero_id: userId,
       fecha: new Date().toISOString(),
     };
@@ -87,44 +98,69 @@ const OrderForm: React.FC = () => {
     }
   };
 
-  const handleCantidadChange = (index: number, cantidad: number) => {
-    const updatedPlatos = platosSeleccionados.map((plato, i) =>
-      i === index ? { ...plato, cantidad } : plato
-    );
-    setPlatosSeleccionados(updatedPlatos);
+  const handleIncrementCantidad = (index: number) => {
+    const newPlatos = [...platosSeleccionados];
+    if (newPlatos[index]) {
+      newPlatos[index].cantidad = (newPlatos[index].cantidad || 0) + 1;
+      setPlatosSeleccionados(newPlatos);
+    }
   };
+
+  const handleDecrementCantidad = (index: number) => {
+    const newPlatos = [...platosSeleccionados];
+    if (
+      newPlatos[index] &&
+      newPlatos[index].cantidad &&
+      newPlatos[index].cantidad! > 1
+    ) {
+      newPlatos[index].cantidad! -= 1;
+    } else if (newPlatos[index]) {
+      newPlatos[index].cantidad = 1; // Minimum quantity should be 1
+    }
+    setPlatosSeleccionados(newPlatos);
+  };
+
+  const isAddOrderDisabled = platosSeleccionados.some((plato) => !plato._id);
 
   return (
     <div>
-      <h2>Nuevo Pedido</h2>
       {error && (
         <div style={{ color: "red" }}>
           {error}
           <button onClick={clearError}>X</button>
         </div>
       )}
-      <label htmlFor="mesaSelect">Mesa</label>
-      <select
-        id="mesaSelect"
-        value={mesaId}
-        onChange={(e) => setMesaId(e.target.value)}
-      >
-        <option value="">Seleccione una mesa</option>
-        {salas.map((sala) => (
-          <optgroup key={sala._id} label={sala.nombre}>
-            {sala.mesas.map((mesa) => (
-              <option key={mesa._id} value={mesa._id}>
-                Mesa {mesa.numero} (Capacidad: {mesa.capacidad})
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
+      <div className="mb-4">
+        <label htmlFor="mesaSelect">Mesa</label>
+        <select
+          id="mesaSelect"
+          className="form-select"
+          value={mesaId}
+          onChange={(e) => setMesaId(e.target.value)}
+        >
+          <option value="">Seleccione una mesa</option>
+          {salas.map((sala) => (
+            <optgroup key={sala._id} label={sala.nombre}>
+              {sala.mesas.map((mesa) => (
+                <option key={mesa._id} value={mesa._id}>
+                  Mesa {mesa.numero} (Capacidad: {mesa.capacidad})
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
+      <div className="d-flex justify-content-center mb-3">
+        <button className="btn boton-anyadir bluebton" onClick={handleAddPlato}>
+          Añadir Plato
+        </button>
+      </div>
 
       {platosSeleccionados.map((plato, index) => (
-        <div key={index}>
-          <label htmlFor={`platoSelect${index}`}>Plato</label>
+        <div key={index} className="d-flex justify-content-between">
           <select
+            className="form-select maxlength-select me-2 mb-2"
             id={`platoSelect${index}`}
             value={plato._id}
             onChange={(e) => handlePlatoChange(index, e.target.value)}
@@ -140,23 +176,39 @@ const OrderForm: React.FC = () => {
               </optgroup>
             ))}
           </select>
-          <input
-            type="number"
-            placeholder="Cantidad"
-            value={plato.cantidad ?? 0}
-            onChange={(e) =>
-              handleCantidadChange(index, Number(e.target.value))
-            }
+          <QuantitySelector
+            quantity={plato.cantidad || 0}
+            onIncrement={() => handleIncrementCantidad(index)}
+            onDecrement={() => handleDecrementCantidad(index)}
           />
-          <span>{plato.precio * (plato.cantidad ?? 0)}</span>
-          <button onClick={() => handleRemovePlato(index)}>Eliminar</button>
+          <div className="ms-2 me-3">
+            <span>
+              <strong>
+                {(plato.precio * (plato.cantidad ?? 0)).toFixed(2)}€
+              </strong>
+            </span>
+          </div>
+          <button
+            className="btn boton-anyadir redbton"
+            onClick={() => handleRemovePlato(index)}
+          >
+            <FontAwesomeIcon className="btn-icono" icon={faTrash} />
+          </button>
         </div>
       ))}
-      <button onClick={handleAddPlato}>Añadir Plato</button>
-      <div>
-        <strong>Total:</strong> {total.toFixed(2)}
+
+      <div className="d-flex justify-content-between mt-4">
+        <div>
+          <strong>Total:</strong> {total.toFixed(2)}
+        </div>
+        <button
+          className="btn boton-anyadir greenbton"
+          onClick={handleAddOrder}
+          disabled={isAddOrderDisabled}
+        >
+          Crear Pedido
+        </button>
       </div>
-      <button onClick={handleAddOrder}>Crear Pedido</button>
     </div>
   );
 };

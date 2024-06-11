@@ -3,6 +3,20 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useOrders } from "../context/OrderContext";
 import { Order } from "../interfaces/order";
+import useOrderInfo from "../hooks/useOrderInfo";
+import useCamareroInfo from "../hooks/useCamareroInfo";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faEdit,
+  faTrash,
+  faCheck,
+  faTimes,
+  faPlus,
+  faMinus,
+} from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
+import QuantitySelector from "./QuantitySelector";
+import { formatDate } from "../utils/dateUtils";
 
 const UpdateOrder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,7 +26,6 @@ const UpdateOrder: React.FC = () => {
     updateOrder,
     error,
     clearError,
-    salas,
     comidas,
     changeOrderState,
   } = useOrders();
@@ -37,6 +50,9 @@ const UpdateOrder: React.FC = () => {
     fetchOrder();
   }, [id, getOrderById]);
 
+  const { salaInfo } = useOrderInfo(order?.mesa_id || "");
+  const { userInfo } = useCamareroInfo(order?.camarero_id || "");
+
   useEffect(() => {
     const calculateTotal = () => {
       let totalSum = 0;
@@ -44,7 +60,7 @@ const UpdateOrder: React.FC = () => {
         platosSeleccionados.forEach((plato) => {
           const foundPlato = comidas
             .flatMap((comida) => comida.platos)
-            .find((p) => p._id === plato._id);
+            .find((p) => p._id === plato.plato_id);
           if (foundPlato) {
             totalSum += foundPlato.precio * (plato.cantidad || 0);
           }
@@ -56,14 +72,20 @@ const UpdateOrder: React.FC = () => {
     calculateTotal();
   }, [platosSeleccionados, comidas]);
 
-  const handleUpdateOrder = () => {
+  const handleUpdateOrder = async () => {
     if (order) {
       const updatedOrder = {
         ...order,
         platos: platosSeleccionados,
         camarero_id: user?._id || order.camarero_id,
       };
-      updateOrder(updatedOrder);
+      await updateOrder(updatedOrder);
+      Swal.fire({
+        title: "Pedido actualizado",
+        text: "El pedido ha sido actualizado exitosamente.",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
     }
   };
 
@@ -71,19 +93,10 @@ const UpdateOrder: React.FC = () => {
     setPlatosSeleccionados([
       ...platosSeleccionados,
       {
-        _id: "",
+        plato_id: "",
         cantidad: 1,
         comidaId: "",
-        nombre: "",
-        stock: 0,
         precio: 0,
-        ingredientes: [],
-        disponibilidad: false,
-        particularidades_alimentarias: {
-          celiaco: false,
-          alergenos: [],
-          _id: "",
-        },
       },
     ]);
   };
@@ -95,6 +108,7 @@ const UpdateOrder: React.FC = () => {
 
   const handlePlatoChange = (index: number, _id: string, comidaId: string) => {
     const newPlatos = [...platosSeleccionados];
+
     const selectedPlato = comidas
       .flatMap((comida) => comida.platos)
       .find((p) => p._id === _id);
@@ -102,15 +116,27 @@ const UpdateOrder: React.FC = () => {
     if (selectedPlato) {
       newPlatos[index] = {
         ...selectedPlato,
+        plato_id: _id,
         cantidad: newPlatos[index].cantidad || 1,
+        comidaId: comidaId,
       };
     }
     setPlatosSeleccionados(newPlatos);
   };
 
-  const handleCantidadChange = (index: number, cantidad: number) => {
+  const handleIncrementCantidad = (index: number) => {
     const newPlatos = [...platosSeleccionados];
-    newPlatos[index].cantidad = cantidad;
+    newPlatos[index].cantidad = (newPlatos[index].cantidad || 0) + 1;
+    setPlatosSeleccionados(newPlatos);
+  };
+
+  const handleDecrementCantidad = (index: number) => {
+    const newPlatos = [...platosSeleccionados];
+    if (newPlatos[index].cantidad && newPlatos[index].cantidad > 1) {
+      newPlatos[index].cantidad -= 1;
+    } else {
+      newPlatos[index].cantidad = 1; // Minimum quantity should be 1
+    }
     setPlatosSeleccionados(newPlatos);
   };
 
@@ -132,88 +158,132 @@ const UpdateOrder: React.FC = () => {
   }
 
   const isDisabled = order.estado === "closed";
+  const isUpdateDisabled =
+    isDisabled || platosSeleccionados.some((plato) => !plato.plato_id);
 
   return (
-    <div>
-      <h2>Actualizar Pedido</h2>
-      {error && (
-        <div style={{ color: "red" }}>
-          {error}
-          <button onClick={clearError}>X</button>
+    <div className="mt-5 p-4">
+      <div className="d-flex justify-content-between">
+        <div>
+          <h4>
+            {salaInfo
+              ? `${salaInfo.nombre} - Mesa ${salaInfo.numero}`
+              : "Cargando..."}
+          </h4>
+          <p>{formatDate(order.fecha)}</p>
         </div>
-      )}
-      <div>
-        <strong>Mesa:</strong> {order.mesa_id}
+        <div>
+          <h5>
+            <strong>Camarero:</strong>{" "}
+            {userInfo ? `${userInfo.name} ${userInfo.surname}` : "Cargando..."}
+          </h5>
+        </div>
       </div>
-      {platosSeleccionados.map((plato, index) => (
-        <div key={index}>
-          <label htmlFor={`platoSelect${index}`}>Plato</label>
-          <select
-            id={`platoSelect${index}`}
-            value={plato._id}
-            onChange={(e) => {
-              const selectedOption = e.target.options[e.target.selectedIndex];
-              const selectedComidaId =
-                selectedOption.getAttribute("data-comida-id")!;
-              handlePlatoChange(index, e.target.value, selectedComidaId);
-            }}
-            disabled={isDisabled}
-          >
-            <option value="">Seleccione un plato</option>
-            {comidas.map((comida) => (
-              <optgroup key={comida._id} label={comida.tipo}>
-                {comida.platos.map((platoItem) => (
-                  <option
-                    key={platoItem._id}
-                    value={platoItem._id}
-                    data-comida-id={comida._id}
-                  >
-                    {platoItem.nombre}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <input
-            type="number"
-            placeholder="Cantidad"
-            value={plato.cantidad || 0}
-            onChange={(e) =>
-              handleCantidadChange(index, Number(e.target.value))
-            }
-            disabled={isDisabled}
-          />
-          <span>{plato.precio * (plato.cantidad || 0)}</span>
+      <div className="container mt-3">
+        <div className="mb-4 d-flex justify-content-end">
           <button
-            onClick={() => handleRemovePlato(index)}
+            className="btn boton-anyadir greenbton"
+            onClick={handleAddPlato}
             disabled={isDisabled}
           >
-            Eliminar
+            <FontAwesomeIcon icon={faPlus} /> Añadir Plato
           </button>
         </div>
-      ))}
-      <button onClick={handleAddPlato} disabled={isDisabled}>
-        Añadir Plato
-      </button>
-      <div>
-        <strong>Total:</strong> {total.toFixed(2)}
+
+        {error && (
+          <div style={{ color: "red" }}>
+            {error}
+            <button onClick={clearError}>X</button>
+          </div>
+        )}
+        <h6>Plato</h6>
+        {platosSeleccionados.map((plato, index) => (
+          <div key={index} className="mb-2">
+            <div className="d-flex justify-content-between">
+              <select
+                className="form-select maxlength-select"
+                id={`platoSelect${index}`}
+                value={plato.plato_id}
+                onChange={(e) => {
+                  const selectedOption =
+                    e.target.options[e.target.selectedIndex];
+                  const selectedComidaId =
+                    selectedOption.getAttribute("data-comida-id")!;
+                  handlePlatoChange(index, e.target.value, selectedComidaId);
+                }}
+                disabled={isDisabled}
+              >
+                <option value="">Seleccione un plato</option>
+                {comidas.map((comida) => (
+                  <optgroup key={comida._id} label={comida.tipo}>
+                    {comida.platos.map((platoItem) => (
+                      <option
+                        key={platoItem._id}
+                        value={platoItem._id}
+                        data-comida-id={comida._id}
+                      >
+                        {platoItem.nombre}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <div className="d-flex align-items-center">
+                <QuantitySelector
+                  quantity={plato.cantidad || 0}
+                  onIncrement={() => handleIncrementCantidad(index)}
+                  onDecrement={() => handleDecrementCantidad(index)}
+                />
+              </div>
+              <span>
+                <strong>
+                  {(plato.precio * (plato.cantidad || 0)).toFixed(2)}€
+                </strong>
+              </span>
+
+              <button
+                className="btn btn-listado"
+                disabled={isDisabled}
+                onClick={() => handleRemovePlato(index)}
+              >
+                <FontAwesomeIcon className="btn-icono" icon={faTrash} />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
-      <button onClick={handleUpdateOrder} disabled={isDisabled}>
-        Actualizar Pedido
-      </button>
-      <button
-        onClick={() =>
-          handleStateChange(order.estado === "open" ? "closed" : "open")
-        }
-      >
-        {order.estado === "open" ? "Cerrar Pedido" : "Reabrir Pedido"}
-      </button>
-      <button
-        onClick={handleFacturarPedido}
-        disabled={order.estado !== "closed"}
-      >
-        Facturar Pedido
-      </button>
+      <div className="container mt-5">
+        <div className="d-flex justify-content-between">
+          <div>
+            <button
+              onClick={handleUpdateOrder}
+              disabled={isUpdateDisabled}
+              className="btn boton-anyadir bluebton"
+            >
+              Actualizar Pedido
+            </button>
+            <button
+              className="btn boton-anyadir greenbton ms-2 me-2"
+              onClick={() =>
+                handleStateChange(order.estado === "open" ? "closed" : "open")
+              }
+            >
+              {order.estado === "open" ? "Cerrar Pedido" : "Reabrir Pedido"}
+            </button>
+            <button
+              className="btn boton-anyadir greenbton"
+              onClick={handleFacturarPedido}
+              disabled={order.estado !== "closed"}
+            >
+              Facturar Pedido
+            </button>
+          </div>
+
+          <div>
+            <h5>Total: {total.toFixed(2)}€</h5>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useOrders } from "../context/OrderContext";
 import axios from "../api/axios";
-import { Order } from "../interfaces/order";
+import { OrderFactura } from "../interfaces/order";
 
 const FacturaPreview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getOrderById } = useOrders();
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<OrderFactura | null>(null);
   const [propina, setPropina] = useState<number>(10); // Propina inicial en porcentaje
   const navigate = useNavigate();
 
@@ -16,7 +16,7 @@ const FacturaPreview: React.FC = () => {
       if (id) {
         const fetchedOrder = await getOrderById(id);
         if (fetchedOrder && fetchedOrder.estado === "closed") {
-          setOrder(fetchedOrder);
+          setOrder(fetchedOrder as OrderFactura); // Update the type of fetchedOrder
         } else {
           console.error("El pedido no está cerrado o no existe.");
         }

@@ -6,17 +6,25 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import axios from "../api/axios";
-
+import {
+  fetchOrders as fetchOrdersService,
+  addOrder as addOrderService,
+  getOrderById as getOrderByIdService,
+  updateOrder as updateOrderService,
+  changeOrderState as changeOrderStateService,
+  deleteOrder as deleteOrderService,
+  fetchSalas as fetchSalasService,
+  fetchComidas as fetchComidasService,
+} from "../services/orderService";
 import { Comida } from "../interfaces/comida";
 import { Sala } from "../interfaces/sala";
-import { Order } from "../interfaces/order";
+import { Order, OrderToCreate } from "../interfaces/order";
 
 interface OrderContextType {
   orders: Order[];
   error: string | null;
   fetchOrders: (page: number, limit: number) => void;
-  addOrder: (order: Order) => void;
+  addOrder: (order: OrderToCreate) => void;
   getOrderById: (id: string) => Promise<Order | null>;
   updateOrder: (order: Order) => void;
   changeOrderState: (id: string, newState: string) => void;
@@ -42,18 +50,18 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const fetchOrders = useCallback(async (page: number, limit: number) => {
     try {
-      const response = await axios.get(`/pedidos?page=${page}&limit=${limit}`);
-      setOrders(response.data.data);
+      const data = await fetchOrdersService(page, limit);
+      setOrders(data);
       setError(null);
     } catch (error) {
       setError("Error fetching orders");
     }
   }, []);
 
-  const addOrder = async (order: Order) => {
+  const addOrder = async (order: OrderToCreate) => {
     try {
-      const response = await axios.post("/pedidos", order);
-      setOrders([...orders, response.data]);
+      const newOrder = await addOrderService(order);
+      setOrders([...orders, newOrder]);
       setError(null);
     } catch (error: any) {
       setError(
@@ -64,9 +72,9 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const getOrderById = async (id: string): Promise<Order | null> => {
     try {
-      const response = await axios.get(`/pedidos/${id}`);
+      const order = await getOrderByIdService(id);
       setError(null);
-      return response.data;
+      return order;
     } catch (error: any) {
       setError(
         `Error fetching order: ${
@@ -80,8 +88,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
   const updateOrder = async (order: Order) => {
     if (order.estado === "closed") return;
     try {
-      const response = await axios.put(`/pedidos/${order._id}`, order);
-      setOrders(orders.map((o) => (o._id === order._id ? response.data : o)));
+      const updatedOrder = await updateOrderService(order);
+      setOrders(orders.map((o) => (o._id === order._id ? updatedOrder : o)));
       setError(null);
     } catch (error: any) {
       setError(
@@ -94,11 +102,9 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const changeOrderState = async (id: string, newState: string) => {
     try {
-      const response = await axios.put(`/pedidos/${id}`, { estado: newState });
+      const updatedOrder = await changeOrderStateService(id, newState);
       setOrders(
-        orders.map((order) =>
-          order._id === id ? { ...order, estado: newState } : order
-        )
+        orders.map((order) => (order._id === id ? updatedOrder : order))
       );
       setError(null);
     } catch (error: any) {
@@ -112,7 +118,7 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const deleteOrder = async (id: string) => {
     try {
-      await axios.delete(`/pedidos/${id}`);
+      await deleteOrderService(id);
       setOrders(orders.filter((order) => order._id !== id));
       setError(null);
     } catch (error: any) {
@@ -130,8 +136,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const fetchSalas = async () => {
     try {
-      const response = await axios.get("/salas");
-      setSalas(response.data.data);
+      const data = await fetchSalasService();
+      setSalas(data);
     } catch (error) {
       console.error("Error fetching salas:", error);
     }
@@ -139,8 +145,8 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
 
   const fetchComidas = async () => {
     try {
-      const response = await axios.get("/comidas");
-      setComidas(response.data.data);
+      const data = await fetchComidasService();
+      setComidas(data);
     } catch (error) {
       console.error("Error fetching comidas:", error);
     }

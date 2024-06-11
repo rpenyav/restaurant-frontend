@@ -1,0 +1,90 @@
+@mixin backheader-gradient() {
+  $color1: #a00aa0; // Púrpura
+  $color2: #a7ca08; // Verde fluorescente
+  $color3: #ffcc00; // Amarillo anaranjado
+
+  background: linear-gradient(to right, $color1, $color2, $color3);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.btn-icono {
+}
+.btn-listado {
+  background-color: transparent;
+  color: #000;
+  padding: 0px;
+  border-radius: 50%;
+  border: 2px solid #000;
+  height: 30px !important;
+  width: 30px !important;
+  text-align: center;
+  margin-right: 5px;
+}
+
+.btn-listado:hover {
+  background-color: #000;
+  color: #ffffff;
+
+  border: 2px solid #000;
+}
+
+.boton-anyadir {
+  color: #ffffff;
+  padding: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  height: 30px !important;
+  text-align: center;
+}
+.bluebton {
+  background-color: #0640aa;
+  border: 2px solid #0640aa;
+}
+.greenbton {
+  background-color: #017911;
+  border: 2px solid #046614;
+}
+.redbton {
+  background-color: #8b0303;
+  border: 2px solid #8b0303;
+}
+.boton-anyadir:hover {
+  background-color: #000000;
+  color: #ffffff;
+  border: 2px solid #000;
+}
+.bgstatus-green {
+  background-color: #046614;
+  color: #ffffff;
+}
+.bgstatus-red {
+  background-color: #8b0303;
+  color: #ffffff;
+}
+
+.maxlength-select {
+  max-width: 70%;
+}
+
+.breadcrumb-item a {
+  color: #000;
+  text-decoration: none;
+}
+.breadcrumb-item a {
+  color: #521010;
+  text-decoration: underline;
+}

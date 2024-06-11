@@ -5,9 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { OrderProvider } from "./context/OrderContext";
-
+import { useAuth } from "./context/AuthContext";
 import UpdateOrder from "./components/UpdateOrder";
 import Login from "./components/Login";
 import Layout from "./layout/Layout";
