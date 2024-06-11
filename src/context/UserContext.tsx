@@ -1,37 +1,20 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
+import React, { createContext, useContext, ReactNode } from "react";
+import { useAuth } from "./AuthContext";
 
 interface UserContextType {
-  userId: string;
-  setUserId: (id: string) => void;
-}
-
-interface UserProviderProps {
-  children: ReactNode;
+  userId: string | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-const USER_ID_KEY = "user_id";
-
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [userId, setUserId] = useState<string>(() => {
-    return localStorage.getItem(USER_ID_KEY) || "60d5ec49f8d5ad4cbe2435d2";
-  });
-
-  useEffect(() => {
-    localStorage.setItem(USER_ID_KEY, userId);
-  }, [userId]);
+export const UserProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const { user } = useAuth();
+  const userId = user ? user._id : null;
 
   return (
-    <UserContext.Provider value={{ userId, setUserId }}>
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={{ userId }}>{children}</UserContext.Provider>
   );
 };
 

@@ -55,7 +55,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
       impuesto: 0,
       propina: 0,
       total_con_impuesto_y_propina: 0,
-      camarero_id: userId,
+      camarero_id: userId!,
       fecha: new Date().toISOString(),
     };
 
@@ -126,7 +126,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
   };
 
   const isAddOrderDisabled = platosSeleccionados.some((plato) => !plato._id);
-
+  console.log("userId", userId);
   return (
     <div>
       {error && (

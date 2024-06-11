@@ -30,7 +30,7 @@ export interface OrderToCreate {
   impuesto: number;
   propina: number;
   total_con_impuesto_y_propina: number;
-  camarero_id: string;
+  camarero_id?: string;
   fecha: string;
 }
 

@@ -13,7 +13,7 @@ import {
 import Swal from "sweetalert2";
 import { formatDateToDDMMYYYY } from "../utils/dateUtils";
 import BuscadorPedidos from "./BuscadorPedidos";
-import { searchOrders } from "../services/searchService";
+import axios from "../api/axios";
 
 const OrderList: React.FC = () => {
   const {
@@ -35,6 +35,7 @@ const OrderList: React.FC = () => {
   const [userInfo, setUserInfo] = useState<{
     [key: string]: { name: string; surname: string };
   }>({});
+  const [facturados, setFacturados] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchOrders(page, limit);
@@ -42,7 +43,21 @@ const OrderList: React.FC = () => {
 
   useEffect(() => {
     setFilteredOrders(orders);
+    fetchFacturas();
   }, [orders]);
+
+  const fetchFacturas = async () => {
+    try {
+      const response = await axios.get("/facturas");
+      const facturas = response.data.data;
+      const facturadosSet: Set<string> = new Set(
+        facturas.map((factura: any) => factura.identificador_pedido)
+      );
+      setFacturados(facturadosSet);
+    } catch (error) {
+      console.error("Error fetching facturas:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchSalaInfo = async () => {
@@ -185,7 +200,7 @@ const OrderList: React.FC = () => {
                     }`
                   : order.mesa_id}
               </td>
-              <td>{order.estado}</td>
+              <td>{facturados.has(order._id!) ? "Facturado" : order.estado}</td>
               <td>
                 {userInfo[order.camarero_id]
                   ? `${userInfo[order.camarero_id].name} ${
@@ -199,6 +214,7 @@ const OrderList: React.FC = () => {
                   <button
                     className="btn btn-listado bgstatus-green"
                     onClick={() => handleStateChange(order._id!, "closed")}
+                    disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
                   >
                     <FontAwesomeIcon className="btn-icono" icon={faCheck} />
                   </button>
@@ -206,6 +222,7 @@ const OrderList: React.FC = () => {
                   <button
                     className="btn btn-listado bgstatus-red"
                     onClick={() => handleStateChange(order._id!, "open")}
+                    disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
                   >
                     <FontAwesomeIcon className="btn-icono" icon={faTimes} />
                   </button>

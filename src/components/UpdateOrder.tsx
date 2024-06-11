@@ -17,6 +17,7 @@ import {
 import Swal from "sweetalert2";
 import QuantitySelector from "./QuantitySelector";
 import { formatDate } from "../utils/dateUtils";
+import axios from "../api/axios";
 
 const UpdateOrder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +37,7 @@ const UpdateOrder: React.FC = () => {
     Order["platos"]
   >([]);
   const [total, setTotal] = useState(0);
+  const [isFacturado, setIsFacturado] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -44,11 +46,25 @@ const UpdateOrder: React.FC = () => {
         if (fetchedOrder) {
           setOrder(fetchedOrder);
           setPlatosSeleccionados(fetchedOrder.platos);
+          checkIfFacturado(fetchedOrder._id ?? ""); // Use nullish coalescing operator to provide a default value of an empty string if fetchedOrder._id is undefined
         }
       }
     };
     fetchOrder();
   }, [id, getOrderById]);
+
+  const checkIfFacturado = async (orderId: string) => {
+    try {
+      const response = await axios.get("/facturas");
+      const facturas = response.data.data;
+      const isFacturado = facturas.some(
+        (factura: any) => factura.identificador_pedido === orderId
+      );
+      setIsFacturado(isFacturado);
+    } catch (error) {
+      console.error("Error checking if order is facturado:", error);
+    }
+  };
 
   const { salaInfo } = useOrderInfo(order?.mesa_id || "");
   const { userInfo } = useCamareroInfo(order?.camarero_id || "");
@@ -153,11 +169,15 @@ const UpdateOrder: React.FC = () => {
     }
   };
 
+  const handleVerFactura = () => {
+    navigate(`/factura/${order?._id}`);
+  };
+
   if (!order) {
     return <div>Loading...</div>;
   }
 
-  const isDisabled = order.estado === "closed";
+  const isDisabled = order.estado === "closed" || isFacturado;
   const isUpdateDisabled =
     isDisabled || platosSeleccionados.some((plato) => !plato.plato_id);
 
@@ -233,6 +253,7 @@ const UpdateOrder: React.FC = () => {
                   quantity={plato.cantidad || 0}
                   onIncrement={() => handleIncrementCantidad(index)}
                   onDecrement={() => handleDecrementCantidad(index)}
+                  isDisabled={isDisabled}
                 />
               </div>
               <span>
@@ -267,16 +288,25 @@ const UpdateOrder: React.FC = () => {
               onClick={() =>
                 handleStateChange(order.estado === "open" ? "closed" : "open")
               }
+              disabled={isDisabled}
             >
               {order.estado === "open" ? "Cerrar Pedido" : "Reabrir Pedido"}
             </button>
             <button
               className="btn boton-anyadir greenbton"
               onClick={handleFacturarPedido}
-              disabled={order.estado !== "closed"}
+              disabled={order.estado !== "closed" || isFacturado}
             >
               Facturar Pedido
             </button>
+            {isFacturado && (
+              <button
+                className="btn boton-anyadir bluebton ms-2"
+                onClick={handleVerFactura}
+              >
+                Ver Factura
+              </button>
+            )}
           </div>
 
           <div>
