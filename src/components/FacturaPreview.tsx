@@ -59,44 +59,77 @@ const FacturaPreview: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Preview Factura</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Plato</th>
-            <th>Precio Plato</th>
-            <th>Cantidad</th>
-            <th>Suma</th>
-          </tr>
-        </thead>
-        <tbody>
-          {order.platos.map((plato, index) => (
-            <tr key={index}>
-              <td>{plato.nombre}</td>
-              <td>{`${plato.precio}€`}</td>
-              <td>{plato.cantidad ?? 0}</td>
-              <td>{(plato.precio * (plato.cantidad ?? 0)).toFixed(2)}€</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div>Subtotal: {subtotal.toFixed(2)}€</div>
-      <div>Impuesto (IVA 21%): {importeIva.toFixed(2)}€</div>
-      <div>
-        Propina:
-        <select
-          value={propina}
-          onChange={(e) => setPropina(Number(e.target.value))}
-        >
-          <option value={5}>5%</option>
-          <option value={10}>10%</option>
-          <option value={25}>25%</option>
-        </select>
+    <div className="container ps-5 pe-5">
+      <div className="row ps-5 pe-5 mt-5">
+        <div className="col-12 ps-5 pe-5">
+          <h2>Preview Factura</h2>
+          <table className="table mt-5">
+            <thead>
+              <tr>
+                <th>Plato</th>
+                <th>Precio Plato</th>
+                <th>Cantidad</th>
+                <th>Suma</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.platos.map((plato, index) => (
+                <tr key={index}>
+                  <td>{plato.nombre}</td>
+                  <td>{`${plato.precio}€`}</td>
+                  <td>{plato.cantidad ?? 0}</td>
+                  <td className="align-right">
+                    {(plato.precio * (plato.cantidad ?? 0)).toFixed(2)}€
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="d-flex justify-content-between">
+            <div className="d-flex justify-content-start">
+              <div className="me-2">
+                Propina:{" "}
+                <select
+                  className="custom-select"
+                  value={propina}
+                  onChange={(e) => setPropina(Number(e.target.value))}
+                >
+                  <option value={5}>5%</option>
+                  <option value={10}>10%</option>
+                  <option value={25}>25%</option>
+                </select>
+              </div>
+              <div>
+                Importe Propina: <strong>{importePropina.toFixed(2)}€</strong>
+              </div>
+            </div>
+
+            <div>
+              <div className="align-right">
+                Subtotal: <strong>{subtotal.toFixed(2)}€</strong>
+              </div>
+              <div>
+                Impuesto (IVA 21%): <strong>{importeIva.toFixed(2)}€</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="d-flex justify-content-end mt-5">
+            <div>
+              <h5>Total: {total.toFixed(2)}€</h5>
+            </div>
+          </div>
+          <div className="d-flex justify-content-center mt-5 mb-5">
+            <button
+              className="btn boton-anyadir greenbton"
+              onClick={handleConfirm}
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
       </div>
-      <div>Importe Propina: {importePropina.toFixed(2)}€</div>
-      <div>Total: {total.toFixed(2)}€</div>
-      <button onClick={handleConfirm}>Confirmar</button>
     </div>
   );
 };

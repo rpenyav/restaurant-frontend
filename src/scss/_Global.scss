@@ -75,11 +75,20 @@ code {
   background-color: #8b0303;
   color: #ffffff;
 }
+.custom-select {
+  border: none;
+  border-bottom: 1px solid #000; /* Cambia #000 por el color que desees */
+  padding: 5px 10px;
+  outline: none;
+  background-color: transparent;
+}
 
 .maxlength-select {
   max-width: 70%;
 }
-
+.align-right {
+  text-align: right;
+}
 .breadcrumb-item a {
   color: #000;
   text-decoration: none;
