@@ -11,18 +11,12 @@ import Login from "./components/Login";
 import Layout from "./layout/Layout";
 import FacturaPreview from "./components/FacturaPreview";
 import Order from "./pages/Order";
-
-const PrivateRoute: React.FC<{ element: React.FC }> = ({
-  element: Element,
-}) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Element /> : <Navigate to="/login" />;
-};
-
-const AuthRoute: React.FC<{ element: React.FC }> = ({ element: Element }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/orders" /> : <Element />;
-};
+import FacturaDetail from "./components/FacturaDetail";
+import FacturaList from "./components/FacturaList";
+import AdminRoute from "./components/AdminRoute";
+import NotFound from "./components/NotfoundComponent";
+import PrivateRoute from "./router/PrivateRoute";
+import { AuthRoute } from "./router/AuthRoute";
 
 const App: React.FC = () => {
   return (
@@ -53,7 +47,32 @@ const App: React.FC = () => {
             </Layout>
           }
         />
+        <Route
+          path="/factura-detail/:id"
+          element={
+            <Layout>
+              <PrivateRoute element={FacturaDetail} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/facturas"
+          element={
+            <Layout>
+              <AdminRoute element={FacturaList} /> {/* Usar AdminRoute aquí */}
+            </Layout>
+          }
+        />
         <Route path="/" element={<Navigate to="/orders" />} />
+        <Route
+          path="/404"
+          element={
+            <Layout>
+              <NotFound />
+            </Layout>
+          }
+        />
+        <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
     </Router>
   );

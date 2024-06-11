@@ -18,6 +18,9 @@ import Swal from "sweetalert2";
 import QuantitySelector from "./QuantitySelector";
 import { formatDate } from "../utils/dateUtils";
 import axios from "../api/axios";
+import Spinner from "react-bootstrap/Spinner";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const UpdateOrder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +41,16 @@ const UpdateOrder: React.FC = () => {
   >([]);
   const [total, setTotal] = useState(0);
   const [isFacturado, setIsFacturado] = useState(false);
+  const [isLoadingFacturar, setIsLoadingFacturar] = useState(false);
+
+  const [wait, setWait] = useState(false);
+
+  useEffect(() => {
+    setWait(true);
+    setTimeout(() => {
+      setWait(false);
+    }, 1000);
+  }, [setWait]);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -165,12 +178,16 @@ const UpdateOrder: React.FC = () => {
 
   const handleFacturarPedido = () => {
     if (order?.estado === "closed") {
-      navigate(`/factura-preview/${order._id}`);
+      setIsLoadingFacturar(true);
+      setTimeout(() => {
+        setIsLoadingFacturar(false);
+        navigate(`/factura-preview/${order._id}`);
+      }, 2000);
     }
   };
 
   const handleVerFactura = () => {
-    navigate(`/factura/${order?._id}`);
+    navigate(`/factura-detail/${order?._id}`);
   };
 
   if (!order) {
@@ -189,7 +206,13 @@ const UpdateOrder: React.FC = () => {
             {salaInfo
               ? `${salaInfo.nombre} - Mesa ${salaInfo.numero}`
               : "Cargando..."}
+            {isFacturado && (
+              <span style={{ color: "red", marginLeft: "10px" }}>
+                pedido cobrado
+              </span>
+            )}
           </h4>
+
           <p>{formatDate(order.fecha)}</p>
         </div>
         <div>
@@ -292,14 +315,20 @@ const UpdateOrder: React.FC = () => {
             >
               {order.estado === "open" ? "Cerrar Pedido" : "Reabrir Pedido"}
             </button>
-            <button
-              className="btn boton-anyadir greenbton"
-              onClick={handleFacturarPedido}
-              disabled={order.estado !== "closed" || isFacturado}
-            >
-              Facturar Pedido
-            </button>
-            {isFacturado && (
+            {!wait ? (
+              <button
+                className="btn boton-anyadir greenbton"
+                onClick={handleFacturarPedido}
+                disabled={
+                  order.estado !== "closed" || isFacturado || isLoadingFacturar
+                }
+              >
+                Facturar Pedido
+              </button>
+            ) : (
+              <Skeleton />
+            )}
+            {isFacturado && user?.role === "admin" && (
               <button
                 className="btn boton-anyadir bluebton ms-2"
                 onClick={handleVerFactura}

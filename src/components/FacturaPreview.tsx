@@ -1,4 +1,3 @@
-// components/FacturaPreview.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useOrders } from "../context/OrderContext";
@@ -39,7 +38,7 @@ const FacturaPreview: React.FC = () => {
   const total = subtotal + importeIva + importePropina;
 
   const handleConfirm = async () => {
-    const factura: Factura = {
+    const factura: Omit<Factura, "_id"> = {
       fecha: new Date().toISOString(),
       facturacion_total: total,
       identificador_pedido: id!,
@@ -57,8 +56,12 @@ const FacturaPreview: React.FC = () => {
       total,
     };
 
-    await axios.post("/facturas", factura);
-    navigate("/orders");
+    try {
+      await axios.post("/facturas", factura);
+      navigate("/orders");
+    } catch (error) {
+      console.error("Error creating factura:", error);
+    }
   };
 
   return (

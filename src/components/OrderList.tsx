@@ -14,6 +14,8 @@ import Swal from "sweetalert2";
 import { formatDateToDDMMYYYY } from "../utils/dateUtils";
 import BuscadorPedidos from "./BuscadorPedidos";
 import axios from "../api/axios";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const OrderList: React.FC = () => {
   const {
@@ -36,14 +38,45 @@ const OrderList: React.FC = () => {
     [key: string]: { name: string; surname: string };
   }>({});
   const [facturados, setFacturados] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrders(page, limit);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await fetchOrders(page, limit);
+        await fetchFacturas();
+        await fetchSalaInfo();
+        await fetchUserInfo();
+        setFilteredOrders(orders);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        // setLoading(false);
+      }
+    };
+    fetchData();
   }, [page, limit, fetchOrders]);
 
   useEffect(() => {
-    setFilteredOrders(orders);
-    fetchFacturas();
+    if (orders.length > 0) {
+      const fetchAdditionalData = async () => {
+        // setLoading(true);
+        try {
+          await fetchFacturas();
+          await fetchSalaInfo();
+          await fetchUserInfo();
+          setFilteredOrders(orders);
+        } catch (error) {
+          console.error("Error fetching additional data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchAdditionalData();
+    } else {
+      // setLoading(false);
+    }
   }, [orders]);
 
   const fetchFacturas = async () => {
@@ -59,65 +92,53 @@ const OrderList: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchSalaInfo = async () => {
-      const salaInfoMap: { [key: string]: { nombre: string; numero: number } } =
-        {};
+  const fetchSalaInfo = async () => {
+    const salaInfoMap: { [key: string]: { nombre: string; numero: number } } =
+      {};
 
-      for (const order of orders) {
-        if (!salaInfo[order.mesa_id]) {
-          try {
-            const { sala, mesa } = await fetchSalaByMesaId(order.mesa_id);
-            salaInfoMap[order.mesa_id] = {
-              nombre: sala.nombre,
-              numero: mesa.numero,
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching sala for mesa_id ${order.mesa_id}:`,
-              error
-            );
-          }
+    for (const order of orders) {
+      if (!salaInfo[order.mesa_id]) {
+        try {
+          const { sala, mesa } = await fetchSalaByMesaId(order.mesa_id);
+          salaInfoMap[order.mesa_id] = {
+            nombre: sala.nombre,
+            numero: mesa.numero,
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching sala for mesa_id ${order.mesa_id}:`,
+            error
+          );
         }
       }
-
-      setSalaInfo((prev) => ({ ...prev, ...salaInfoMap }));
-    };
-
-    if (orders.length > 0) {
-      fetchSalaInfo();
     }
-  }, [orders]);
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      const userInfoMap: { [key: string]: { name: string; surname: string } } =
-        {};
+    setSalaInfo((prev) => ({ ...prev, ...salaInfoMap }));
+  };
 
-      for (const order of orders) {
-        if (!userInfo[order.camarero_id]) {
-          try {
-            const user = await fetchUserById(order.camarero_id);
-            userInfoMap[order.camarero_id] = {
-              name: user.name,
-              surname: user.surname,
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching user for camarero_id ${order.camarero_id}:`,
-              error
-            );
-          }
+  const fetchUserInfo = async () => {
+    const userInfoMap: { [key: string]: { name: string; surname: string } } =
+      {};
+
+    for (const order of orders) {
+      if (!userInfo[order.camarero_id]) {
+        try {
+          const user = await fetchUserById(order.camarero_id);
+          userInfoMap[order.camarero_id] = {
+            name: user.name,
+            surname: user.surname,
+          };
+        } catch (error) {
+          console.error(
+            `Error fetching user for camarero_id ${order.camarero_id}:`,
+            error
+          );
         }
       }
-
-      setUserInfo((prev) => ({ ...prev, ...userInfoMap }));
-    };
-
-    if (orders.length > 0) {
-      fetchUserInfo();
     }
-  }, [orders]);
+
+    setUserInfo((prev) => ({ ...prev, ...userInfoMap }));
+  };
 
   const handleStateChange = (id: string, newState: string) => {
     changeOrderState(id, newState);
@@ -191,67 +212,92 @@ const OrderList: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredOrders.map((order) => (
-            <tr key={order._id}>
-              <td>
-                {salaInfo[order.mesa_id]
-                  ? `${salaInfo[order.mesa_id].nombre} - Mesa ${
-                      salaInfo[order.mesa_id].numero
-                    }`
-                  : order.mesa_id}
-              </td>
-              <td>{facturados.has(order._id!) ? "Facturado" : order.estado}</td>
-              <td>
-                {userInfo[order.camarero_id]
-                  ? `${userInfo[order.camarero_id].name} ${
-                      userInfo[order.camarero_id].surname
-                    }`
-                  : order.camarero_id}
-              </td>
-              <td>{formatDateToDDMMYYYY(order.fecha)}</td>
-              <td className="text-center" width={"10%"}>
-                {order.estado === "open" ? (
-                  <button
-                    className="btn btn-listado bgstatus-green"
-                    onClick={() => handleStateChange(order._id!, "closed")}
-                    disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
-                  >
-                    <FontAwesomeIcon className="btn-icono" icon={faCheck} />
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn-listado bgstatus-red"
-                    onClick={() => handleStateChange(order._id!, "open")}
-                    disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
-                  >
-                    <FontAwesomeIcon className="btn-icono" icon={faTimes} />
-                  </button>
-                )}
-                <button
-                  className="btn btn-listado"
-                  onClick={() => navigate(`/update-order/${order._id}`)}
-                >
-                  <FontAwesomeIcon className="btn-icono" icon={faEdit} />
-                </button>
-                <button
-                  className="btn btn-listado"
-                  onClick={() => handleDeleteOrder(order._id!)}
-                >
-                  <FontAwesomeIcon className="btn-icono" icon={faTrash} />
-                </button>
-              </td>
-            </tr>
-          ))}
+          {loading
+            ? Array.from({ length: limit }).map((_, index) => (
+                <tr key={index}>
+                  <td>
+                    <Skeleton />
+                  </td>
+                  <td>
+                    <Skeleton />
+                  </td>
+                  <td>
+                    <Skeleton />
+                  </td>
+                  <td>
+                    <Skeleton />
+                  </td>
+                  <td>
+                    <Skeleton width={100} height={40} />
+                  </td>
+                </tr>
+              ))
+            : filteredOrders.map((order) => (
+                <tr key={order._id}>
+                  <td>
+                    {salaInfo[order.mesa_id]
+                      ? `${salaInfo[order.mesa_id].nombre} - Mesa ${
+                          salaInfo[order.mesa_id].numero
+                        }`
+                      : order.mesa_id}
+                  </td>
+                  <td>
+                    {facturados.has(order._id!) ? "Facturado" : order.estado}
+                  </td>
+                  <td>
+                    {userInfo[order.camarero_id]
+                      ? `${userInfo[order.camarero_id].name} ${
+                          userInfo[order.camarero_id].surname
+                        }`
+                      : order.camarero_id}
+                  </td>
+                  <td>{formatDateToDDMMYYYY(order.fecha)}</td>
+                  <td className="text-center" width={"10%"}>
+                    {order.estado === "open" ? (
+                      <button
+                        className="btn btn-listado bgstatus-green"
+                        onClick={() => handleStateChange(order._id!, "closed")}
+                        disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
+                      >
+                        <FontAwesomeIcon className="btn-icono" icon={faCheck} />
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-listado bgstatus-red"
+                        onClick={() => handleStateChange(order._id!, "open")}
+                        disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
+                      >
+                        <FontAwesomeIcon className="btn-icono" icon={faTimes} />
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-listado"
+                      onClick={() => navigate(`/update-order/${order._id}`)}
+                    >
+                      <FontAwesomeIcon className="btn-icono" icon={faEdit} />
+                    </button>
+                    <button
+                      className="btn btn-listado"
+                      onClick={() => handleDeleteOrder(order._id!)}
+                    >
+                      <FontAwesomeIcon className="btn-icono" icon={faTrash} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
         </tbody>
       </table>
-      <div>
+
+      <div className="d-flex justify-content-between">
         <button
+          className="btn btn-secondary"
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={page === 1}
         >
           Anterior
         </button>
         <button
+          className="btn btn-secondary"
           onClick={() => setPage((prev) => prev + 1)}
           disabled={orders.length < limit}
         >
