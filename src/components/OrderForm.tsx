@@ -1,34 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../context/UserContext";
 import { useOrders } from "../context/OrderContext";
-import { useNavigate } from "react-router-dom";
 import { Plato } from "../interfaces/plato";
 import { Order } from "../interfaces/order";
 
 const OrderForm: React.FC = () => {
   const { userId } = useUser();
-  const {
-    addOrder,
-    fetchOrders,
-    orders,
-    error,
-    clearError,
-    salas,
-    comidas,
-    changeOrderState,
-    deleteOrder,
-  } = useOrders();
-  const navigate = useNavigate();
+  const { addOrder, salas, comidas, error, clearError } = useOrders();
 
   const [mesaId, setMesaId] = useState("");
   const [platosSeleccionados, setPlatosSeleccionados] = useState<Plato[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [limit] = useState(10);
-
-  useEffect(() => {
-    fetchOrders(page, limit);
-  }, [page, limit, fetchOrders]);
 
   useEffect(() => {
     const calculateTotal = () => {
@@ -112,14 +94,6 @@ const OrderForm: React.FC = () => {
     setPlatosSeleccionados(updatedPlatos);
   };
 
-  const handleStateChange = (id: string, newState: string) => {
-    changeOrderState(id, newState);
-  };
-
-  const handleDeleteOrder = (id: string) => {
-    deleteOrder(id);
-  };
-
   return (
     <div>
       <h2>Nuevo Pedido</h2>
@@ -169,7 +143,7 @@ const OrderForm: React.FC = () => {
           <input
             type="number"
             placeholder="Cantidad"
-            value={plato.cantidad}
+            value={plato.cantidad ?? 0}
             onChange={(e) =>
               handleCantidadChange(index, Number(e.target.value))
             }
@@ -183,57 +157,6 @@ const OrderForm: React.FC = () => {
         <strong>Total:</strong> {total.toFixed(2)}
       </div>
       <button onClick={handleAddOrder}>Crear Pedido</button>
-      <h2>Pedidos</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Mesa</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((order) => (
-            <tr key={order._id}>
-              <td>{order.mesa_id}</td>
-              <td>{order.estado}</td>
-              <td>
-                {order.estado === "open" ? (
-                  <button
-                    onClick={() => handleStateChange(order._id!, "closed")}
-                  >
-                    Cerrar
-                  </button>
-                ) : (
-                  <button onClick={() => handleStateChange(order._id!, "open")}>
-                    Reabrir
-                  </button>
-                )}
-                <button onClick={() => navigate(`/update-order/${order._id}`)}>
-                  Actualizar
-                </button>
-                <button onClick={() => handleDeleteOrder(order._id!)}>
-                  Eliminar
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div>
-        <button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
-        >
-          Anterior
-        </button>
-        <button
-          onClick={() => setPage((prev) => prev + 1)}
-          disabled={orders.length < limit}
-        >
-          Siguiente
-        </button>
-      </div>
     </div>
   );
 };

@@ -7,11 +7,12 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { OrderProvider } from "./context/OrderContext";
-import OrderForm from "./components/OrderForm";
+
 import UpdateOrder from "./components/UpdateOrder";
 import Login from "./components/Login";
 import Layout from "./layout/Layout";
 import FacturaPreview from "./components/FacturaPreview";
+import Order from "./pages/Order";
 
 const PrivateRoute: React.FC<{ element: React.FC }> = ({
   element: Element,
@@ -27,34 +28,36 @@ const AuthRoute: React.FC<{ element: React.FC }> = ({ element: Element }) => {
 
 const App: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/login" element={<AuthRoute element={Login} />} />
-      <Route
-        path="/orders"
-        element={
-          <Layout>
-            <PrivateRoute element={OrderForm} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/update-order/:id"
-        element={
-          <Layout>
-            <PrivateRoute element={UpdateOrder} />
-          </Layout>
-        }
-      />
-      <Route
-        path="/factura-preview/:id"
-        element={
-          <Layout>
-            <PrivateRoute element={FacturaPreview} />
-          </Layout>
-        }
-      />
-      <Route path="/" element={<Navigate to="/orders" />} />
-    </Routes>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<AuthRoute element={Login} />} />
+        <Route
+          path="/orders"
+          element={
+            <Layout>
+              <PrivateRoute element={Order} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/update-order/:id"
+          element={
+            <Layout>
+              <PrivateRoute element={UpdateOrder} />
+            </Layout>
+          }
+        />
+        <Route
+          path="/factura-preview/:id"
+          element={
+            <Layout>
+              <PrivateRoute element={FacturaPreview} />
+            </Layout>
+          }
+        />
+        <Route path="/" element={<Navigate to="/orders" />} />
+      </Routes>
+    </Router>
   );
 };
 

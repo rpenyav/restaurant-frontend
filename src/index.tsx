@@ -16,9 +16,7 @@ root.render(
     <AuthProvider>
       <UserProvider>
         <OrderProvider>
-          <Router>
-            <App />
-          </Router>
+          <App />
         </OrderProvider>
       </UserProvider>
     </AuthProvider>
