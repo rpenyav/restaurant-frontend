@@ -1,8 +1,10 @@
+// components/FacturaPreview.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useOrders } from "../context/OrderContext";
 import axios from "../api/axios";
 import { OrderFactura } from "../interfaces/order";
+import { Factura } from "../interfaces/factura";
 
 const FacturaPreview: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,9 +39,10 @@ const FacturaPreview: React.FC = () => {
   const total = subtotal + importeIva + importePropina;
 
   const handleConfirm = async () => {
-    const factura = {
+    const factura: Factura = {
       fecha: new Date().toISOString(),
       facturacion_total: total,
+      identificador_pedido: id!,
       desglose: order.platos.map((plato) => ({
         plato: plato.nombre,
         precio: plato.precio,
