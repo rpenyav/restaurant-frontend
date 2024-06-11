@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Button } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import OrderForm from "./OrderForm";
 
 interface OrderModalProps {
@@ -9,19 +9,12 @@ interface OrderModalProps {
 
 const OrderModal: React.FC<OrderModalProps> = ({ show, handleClose }) => {
   return (
-    <Modal
-      show={show}
-      onHide={handleClose}
-      centered
-      dialogClassName="modal-lg"
-      backdrop="static"
-      keyboard={false}
-    >
+    <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
-        <Modal.Title>Nuevo Pedido</Modal.Title>
+        <Modal.Title>Crear Pedido</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <OrderForm />
+        <OrderForm onClose={handleClose} />
       </Modal.Body>
     </Modal>
   );

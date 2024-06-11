@@ -7,7 +7,11 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import QuantitySelector from "./QuantitySelector";
 
-const OrderForm: React.FC = () => {
+interface OrderFormProps {
+  onClose: () => void;
+}
+
+const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
   const { userId } = useUser();
   const { addOrder, salas, comidas, error, clearError } = useOrders();
 
@@ -56,6 +60,7 @@ const OrderForm: React.FC = () => {
     };
 
     addOrder(order);
+    onClose();
   };
 
   const handleAddPlato = () => {
