@@ -1,4 +1,3 @@
-// components/LoaderComponent.tsx
 import React from "react";
 
 const LoaderComponent: React.FC = () => {

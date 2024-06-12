@@ -9,7 +9,7 @@ const PrivateRoute: React.FC<{ element: React.FC }> = ({
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <LoaderComponent />; // Muestra el componente de carga mientras se verifica la autenticación
+    return <LoaderComponent />;
   }
 
   return isAuthenticated ? <Element /> : <Navigate to="/login" />;

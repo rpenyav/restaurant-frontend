@@ -3,7 +3,7 @@ import axios from "../api/axios";
 export const fetchSalaByMesaId = async (mesaId: string) => {
   try {
     const response = await axios.get(`/salas`);
-    const salas = response.data.data; // Asegúrate de que la respuesta tiene la estructura correcta
+    const salas = response.data.data;
     if (!Array.isArray(salas)) {
       throw new Error("Salas is not an array");
     }

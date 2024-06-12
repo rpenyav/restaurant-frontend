@@ -4,8 +4,12 @@ import { useOrders } from "../context/OrderContext";
 import axios from "../api/axios";
 import { OrderFactura } from "../interfaces/order";
 import { Factura } from "../interfaces/factura";
+import LoaderComponent from "./LoaderComponent";
+import { useTranslation } from "react-i18next";
 
 const FacturaPreview: React.FC = () => {
+  const { t } = useTranslation();
+
   const { id } = useParams<{ id: string }>();
   const { getOrderById } = useOrders();
   const [order, setOrder] = useState<OrderFactura | null>(null);
@@ -17,7 +21,7 @@ const FacturaPreview: React.FC = () => {
       if (id) {
         const fetchedOrder = await getOrderById(id);
         if (fetchedOrder && fetchedOrder.estado === "closed") {
-          setOrder(fetchedOrder as OrderFactura); // Update the type of fetchedOrder
+          setOrder(fetchedOrder as OrderFactura);
         } else {
           console.error("El pedido no está cerrado o no existe.");
         }
@@ -27,7 +31,12 @@ const FacturaPreview: React.FC = () => {
     fetchOrder();
   }, [id, getOrderById]);
 
-  if (!order) return <div>Loading...</div>;
+  if (!order)
+    return (
+      <div>
+        <LoaderComponent />
+      </div>
+    );
 
   const subtotal = order.platos.reduce((acc, plato) => {
     return acc + plato.precio * (plato.cantidad ?? 0);
@@ -68,14 +77,14 @@ const FacturaPreview: React.FC = () => {
     <div className="container ps-5 pe-5">
       <div className="row ps-5 pe-5 mt-5">
         <div className="col-12 ps-5 pe-5">
-          <h2>Preview Factura</h2>
+          <h2>{t("preview_factura")}</h2>
           <table className="table mt-5">
             <thead>
               <tr>
-                <th>Plato</th>
-                <th>Precio Plato</th>
-                <th>Cantidad</th>
-                <th>Suma</th>
+                <th>{t("plato")}</th>
+                <th>{t("precio_plato")}</th>
+                <th>{t("cantidad")}</th>
+                <th>{t("suma")}</th>
               </tr>
             </thead>
             <tbody>
@@ -95,7 +104,7 @@ const FacturaPreview: React.FC = () => {
           <div className="d-flex justify-content-between">
             <div className="d-flex justify-content-start">
               <div className="me-2">
-                Propina:{" "}
+                {t("propina")}:{" "}
                 <select
                   className="custom-select"
                   value={propina}
@@ -107,23 +116,28 @@ const FacturaPreview: React.FC = () => {
                 </select>
               </div>
               <div>
-                Importe Propina: <strong>{importePropina.toFixed(2)}€</strong>
+                {t("importe_propina")}:{" "}
+                <strong>{importePropina.toFixed(2)}€</strong>
               </div>
             </div>
 
             <div>
               <div className="align-right">
-                Subtotal: <strong>{subtotal.toFixed(2)}€</strong>
+                {t("subtotal")}: <strong>{subtotal.toFixed(2)}€</strong>
               </div>
               <div>
-                Impuesto (IVA 21%): <strong>{importeIva.toFixed(2)}€</strong>
+                {t("impuesto")} (IVA 21%):{" "}
+                <strong>{importeIva.toFixed(2)}€</strong>
               </div>
             </div>
           </div>
 
           <div className="d-flex justify-content-end mt-5">
             <div>
-              <h5>Total: {total.toFixed(2)}€</h5>
+              <h5>
+                {" "}
+                {t("total")}: {total.toFixed(2)}€
+              </h5>
             </div>
           </div>
           <div className="d-flex justify-content-center mt-5 mb-5">
@@ -131,7 +145,7 @@ const FacturaPreview: React.FC = () => {
               className="btn boton-anyadir greenbton"
               onClick={handleConfirm}
             >
-              Confirmar
+              {t("confirmar")}
             </button>
           </div>
         </div>

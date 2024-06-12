@@ -1,43 +1,27 @@
 import { format } from "date-fns";
+import i18n from "../i18n/i18n";
+import { locales } from "../i18n/i18n";
+
+const getLocale = (lng: string) => {
+  switch (lng) {
+    case "es":
+      return locales.es;
+    case "en":
+    default:
+      return locales.en;
+  }
+};
 
 export const formatDate = (dateString: string): string => {
-  const daysOfWeek = [
-    "Domingo",
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-  ];
-  const months = [
-    "Enero",
-    "Febrero",
-    "Marzo",
-    "Abril",
-    "Mayo",
-    "Junio",
-    "Julio",
-    "Agosto",
-    "Septiembre",
-    "Octubre",
-    "Noviembre",
-    "Diciembre",
-  ];
-
+  const locale = getLocale(i18n.language);
   const date = new Date(dateString);
-  const dayOfWeek = daysOfWeek[date.getDay()];
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const seconds = String(date.getSeconds()).padStart(2, "0");
-
-  return `${dayOfWeek} ${day} de ${month} de ${year} a las ${hours}:${minutes}:${seconds}h`;
+  return format(date, "EEEE dd 'de' MMMM 'de' yyyy 'a las' HH:mm:ss'h'", {
+    locale,
+  });
 };
 
 export const formatDateToDDMMYYYY = (dateString: string): string => {
+  const locale = getLocale(i18n.language);
   const date = new Date(dateString);
-  return format(date, "dd-MM-yyyy HH:mm:ss");
+  return format(date, "dd-MM-yyyy HH:mm:ss", { locale });
 };

@@ -16,6 +16,7 @@ import BuscadorPedidos from "./BuscadorPedidos";
 import axios from "../api/axios";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import { useTranslation } from "react-i18next";
 
 const OrderList: React.FC = () => {
   const {
@@ -27,7 +28,7 @@ const OrderList: React.FC = () => {
     deleteOrder,
   } = useOrders();
   const navigate = useNavigate();
-
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [filteredOrders, setFilteredOrders] = useState(orders);
@@ -146,17 +147,21 @@ const OrderList: React.FC = () => {
 
   const handleDeleteOrder = (id: string) => {
     Swal.fire({
-      title: "¿Estás seguro?",
-      text: "No podrás revertir esta acción",
+      title: t("swal_estas_seguro"),
+      text: t("swal_no_revertir"),
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Sí, eliminar",
+      confirmButtonText: t("swal_si_eliminar"),
     }).then((result) => {
       if (result.isConfirmed) {
         deleteOrder(id);
-        Swal.fire("Eliminado!", "El pedido ha sido eliminado.", "success");
+        Swal.fire(
+          t("swal_eliminado"),
+          t("swal_pedido_ha_sido_eliminado"),
+          "success"
+        );
       }
     });
   };
@@ -192,7 +197,7 @@ const OrderList: React.FC = () => {
   return (
     <div>
       <div className="d-flex justify-content-between mb-5">
-        <h2>Pedidos</h2>
+        <h2>{t("pedidos")}</h2>
         <BuscadorPedidos onSearch={handleSearch} />
       </div>
       {error && (
@@ -204,11 +209,11 @@ const OrderList: React.FC = () => {
       <table className="table table-striped table-hover table-bordered">
         <thead>
           <tr>
-            <th>Mesa</th>
-            <th>Estado</th>
-            <th>Camarero</th>
-            <th>Fecha</th>
-            <th>Acciones</th>
+            <th>{t("mesa")}</th>
+            <th>{t("estado")}</th>
+            <th>{t("bartender")}</th>
+            <th>{t("fecha")}</th>
+            <th>{t("acciones")}</th>
           </tr>
         </thead>
         <tbody>
@@ -236,13 +241,13 @@ const OrderList: React.FC = () => {
                 <tr key={order._id}>
                   <td>
                     {salaInfo[order.mesa_id]
-                      ? `${salaInfo[order.mesa_id].nombre} - Mesa ${
+                      ? `${salaInfo[order.mesa_id].nombre} - ${t("mesa")} ${
                           salaInfo[order.mesa_id].numero
                         }`
                       : order.mesa_id}
                   </td>
                   <td>
-                    {facturados.has(order._id!) ? "Facturado" : order.estado}
+                    {facturados.has(order._id!) ? t("facturado") : order.estado}
                   </td>
                   <td>
                     {userInfo[order.camarero_id]
@@ -257,7 +262,7 @@ const OrderList: React.FC = () => {
                       <button
                         className="btn btn-listado bgstatus-green"
                         onClick={() => handleStateChange(order._id!, "closed")}
-                        disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
+                        disabled={facturados.has(order._id!)}
                       >
                         <FontAwesomeIcon className="btn-icono" icon={faCheck} />
                       </button>
@@ -265,7 +270,7 @@ const OrderList: React.FC = () => {
                       <button
                         className="btn btn-listado bgstatus-red"
                         onClick={() => handleStateChange(order._id!, "open")}
-                        disabled={facturados.has(order._id!)} // Desactivar el botón si el pedido ha sido facturado
+                        disabled={facturados.has(order._id!)}
                       >
                         <FontAwesomeIcon className="btn-icono" icon={faTimes} />
                       </button>
@@ -294,14 +299,14 @@ const OrderList: React.FC = () => {
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={page === 1}
         >
-          Anterior
+          {t("anterior")}
         </button>
         <button
           className="btn btn-secondary"
           onClick={() => setPage((prev) => prev + 1)}
           disabled={orders.length < limit}
         >
-          Siguiente
+          {t("siguiente")}
         </button>
       </div>
     </div>

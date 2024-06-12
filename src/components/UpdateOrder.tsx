@@ -6,23 +6,19 @@ import { Order } from "../interfaces/order";
 import useOrderInfo from "../hooks/useOrderInfo";
 import useCamareroInfo from "../hooks/useCamareroInfo";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faEdit,
-  faTrash,
-  faCheck,
-  faTimes,
-  faPlus,
-  faMinus,
-} from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 import QuantitySelector from "./QuantitySelector";
 import { formatDate } from "../utils/dateUtils";
 import axios from "../api/axios";
-import Spinner from "react-bootstrap/Spinner";
-import Skeleton from "react-loading-skeleton";
+
 import "react-loading-skeleton/dist/skeleton.css";
+import { useTranslation } from "react-i18next";
+import LoaderComponent from "./LoaderComponent";
+import Skeleton from "react-loading-skeleton";
 
 const UpdateOrder: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const {
@@ -59,7 +55,7 @@ const UpdateOrder: React.FC = () => {
         if (fetchedOrder) {
           setOrder(fetchedOrder);
           setPlatosSeleccionados(fetchedOrder.platos);
-          checkIfFacturado(fetchedOrder._id ?? ""); // Use nullish coalescing operator to provide a default value of an empty string if fetchedOrder._id is undefined
+          checkIfFacturado(fetchedOrder._id ?? "");
         }
       }
     };
@@ -110,10 +106,10 @@ const UpdateOrder: React.FC = () => {
       };
       await updateOrder(updatedOrder);
       Swal.fire({
-        title: "Pedido actualizado",
-        text: "El pedido ha sido actualizado exitosamente.",
+        title: t("swal_pedido_actualizado"),
+        text: t("swal_success_text_pedido"),
         icon: "success",
-        confirmButtonText: "Aceptar",
+        confirmButtonText: t("swal_accept_button"),
       });
     }
   };
@@ -164,7 +160,7 @@ const UpdateOrder: React.FC = () => {
     if (newPlatos[index].cantidad && newPlatos[index].cantidad > 1) {
       newPlatos[index].cantidad -= 1;
     } else {
-      newPlatos[index].cantidad = 1; // Minimum quantity should be 1
+      newPlatos[index].cantidad = 1;
     }
     setPlatosSeleccionados(newPlatos);
   };
@@ -203,12 +199,14 @@ const UpdateOrder: React.FC = () => {
       <div className="d-flex justify-content-between">
         <div>
           <h4>
-            {salaInfo
-              ? `${salaInfo.nombre} - Mesa ${salaInfo.numero}`
-              : "Cargando..."}
+            {salaInfo ? (
+              `${salaInfo.nombre} - Mesa ${salaInfo.numero}`
+            ) : (
+              <Skeleton />
+            )}
             {isFacturado && (
               <span style={{ color: "red", marginLeft: "10px" }}>
-                pedido cobrado
+                {t("pedido_cobrado")}
               </span>
             )}
           </h4>
@@ -217,8 +215,8 @@ const UpdateOrder: React.FC = () => {
         </div>
         <div>
           <h5>
-            <strong>Camarero:</strong>{" "}
-            {userInfo ? `${userInfo.name} ${userInfo.surname}` : "Cargando..."}
+            <strong>{t("bartender")}:</strong>{" "}
+            {userInfo ? `${userInfo.name} ${userInfo.surname}` : <Skeleton />}
           </h5>
         </div>
       </div>
@@ -229,7 +227,7 @@ const UpdateOrder: React.FC = () => {
             onClick={handleAddPlato}
             disabled={isDisabled}
           >
-            <FontAwesomeIcon icon={faPlus} /> Añadir Plato
+            <FontAwesomeIcon icon={faPlus} /> {t("add_plato")}
           </button>
         </div>
 
@@ -239,7 +237,7 @@ const UpdateOrder: React.FC = () => {
             <button onClick={clearError}>X</button>
           </div>
         )}
-        <h6>Plato</h6>
+        <h6>{t("plato_title")}</h6>
         {platosSeleccionados.map((plato, index) => (
           <div key={index} className="mb-2">
             <div className="d-flex justify-content-between">
@@ -256,7 +254,7 @@ const UpdateOrder: React.FC = () => {
                 }}
                 disabled={isDisabled}
               >
-                <option value="">Seleccione un plato</option>
+                <option value="">{t("seleccione_plato")}</option>
                 {comidas.map((comida) => (
                   <optgroup key={comida._id} label={comida.tipo}>
                     {comida.platos.map((platoItem) => (
@@ -304,7 +302,7 @@ const UpdateOrder: React.FC = () => {
               disabled={isUpdateDisabled}
               className="btn boton-anyadir bluebton"
             >
-              Actualizar Pedido
+              {t("update_pedido")}
             </button>
             <button
               className="btn boton-anyadir greenbton ms-2 me-2"
@@ -313,7 +311,9 @@ const UpdateOrder: React.FC = () => {
               }
               disabled={isDisabled}
             >
-              {order.estado === "open" ? "Cerrar Pedido" : "Reabrir Pedido"}
+              {order.estado === "open"
+                ? t("cerrar_pedido")
+                : t("reabrir_pedido")}
             </button>
             {!wait ? (
               <button
@@ -323,23 +323,23 @@ const UpdateOrder: React.FC = () => {
                   order.estado !== "closed" || isFacturado || isLoadingFacturar
                 }
               >
-                Facturar Pedido
+                {t("facturar_pedido")}
               </button>
-            ) : (
-              <Skeleton />
-            )}
+            ) : null}
             {isFacturado && user?.role === "admin" && (
               <button
                 className="btn boton-anyadir bluebton ms-2"
                 onClick={handleVerFactura}
               >
-                Ver Factura
+                {t("ver_factura")}
               </button>
             )}
           </div>
 
           <div>
-            <h5>Total: {total.toFixed(2)}€</h5>
+            <h5>
+              {t("total")}: {total.toFixed(2)}€
+            </h5>
           </div>
         </div>
       </div>

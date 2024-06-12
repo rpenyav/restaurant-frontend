@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface BuscadorPedidosProps {
   onSearch: (searchTerm: string) => void;
@@ -6,7 +7,7 @@ interface BuscadorPedidosProps {
 
 const BuscadorPedidos: React.FC<BuscadorPedidosProps> = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState("");
-
+  const { t } = useTranslation();
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -17,7 +18,7 @@ const BuscadorPedidos: React.FC<BuscadorPedidosProps> = ({ onSearch }) => {
     <input
       type="search"
       className="form-control maxlength-select"
-      placeholder="Buscar pedidos..."
+      placeholder={t("buscar_pedidos")}
       value={searchTerm}
       onChange={handleSearchChange}
     />

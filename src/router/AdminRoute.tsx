@@ -2,7 +2,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LoaderComponent from "./LoaderComponent";
+import LoaderComponent from "../components/LoaderComponent";
 
 const AdminRoute: React.FC<{ element: React.FC }> = ({ element: Element }) => {
   const { user, loading } = useAuth();

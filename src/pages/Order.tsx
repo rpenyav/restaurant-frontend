@@ -3,8 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import OrderList from "../components/OrderList";
 import OrderModal from "../components/OrderModal";
+import { useTranslation } from "react-i18next";
 
 const Order: React.FC = () => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
 
   const handleOpenModal = () => setShowModal(true);
@@ -17,7 +19,7 @@ const Order: React.FC = () => {
           className="btn boton-anyadir greenbton"
           onClick={handleOpenModal}
         >
-          <FontAwesomeIcon icon={faPlus} /> Nuevo pedido
+          <FontAwesomeIcon icon={faPlus} /> {t("new_order")}
         </button>
       </div>
       <OrderList />

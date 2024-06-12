@@ -1,21 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const NavbarComponent: React.FC = () => {
   const { user } = useAuth();
+  const { i18n, t } = useTranslation();
 
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
   return (
     <nav>
       <Link className="navbar-brand" to="/orders">
-        Pedidos
+        {t("pedidos")}
       </Link>{" "}
       |{" "}
       {user?.role === "admin" && (
         <Link className="navbar-brand" to="/facturas">
-          Facturas
+          {t("facturas")}
         </Link>
-      )}
+      )}{" "}
+      |{" "}
+      <button className="btn btn-listado" onClick={() => changeLanguage("en")}>
+        EN
+      </button>
+      <button className="btn btn-listado" onClick={() => changeLanguage("es")}>
+        ES
+      </button>
     </nav>
   );
 };

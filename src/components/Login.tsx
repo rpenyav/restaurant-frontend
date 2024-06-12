@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTranslation } from "react-i18next";
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login, error } = useAuth();
@@ -12,16 +14,16 @@ const Login: React.FC = () => {
     e.preventDefault();
     await login(email, password);
     if (!error) {
-      navigate("/"); // Redirigir al usuario a la página principal después de un login exitoso
+      navigate("/");
     }
   };
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>{t("login")}</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t("email")}</label>
           <input
             type="email"
             id="email"
@@ -31,7 +33,7 @@ const Login: React.FC = () => {
           />
         </div>
         <div>
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">{t("password")}</label>
           <input
             type="password"
             id="password"
@@ -40,7 +42,7 @@ const Login: React.FC = () => {
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit">{t("login")}</button>
         {error && <div style={{ color: "red" }}>{error}</div>}
       </form>
     </div>

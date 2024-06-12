@@ -7,6 +7,7 @@ import { faArrowRight, faEye } from "@fortawesome/free-solid-svg-icons";
 import BuscadorFacturas from "./BuscadorFacturas";
 import { FacturaSearch } from "../interfaces/factura";
 import { searchFacturas } from "../services/searchService";
+import { useTranslation } from "react-i18next";
 
 interface FacturaResponse {
   data: FacturaSearch[];
@@ -16,6 +17,7 @@ interface FacturaResponse {
 }
 
 const FacturaList: React.FC = () => {
+  const { t } = useTranslation();
   const [facturas, setFacturas] = useState<FacturaSearch[]>([]);
   const [filteredFacturas, setFilteredFacturas] = useState<FacturaSearch[]>([]);
   const [page, setPage] = useState(1);
@@ -32,7 +34,7 @@ const FacturaList: React.FC = () => {
         `/facturas?page=${page}&limit=10`
       );
       setFacturas(response.data.data);
-      setFilteredFacturas(response.data.data); // Set filtered facturas initially
+      setFilteredFacturas(response.data.data);
       setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error("Error fetching facturas:", error);
@@ -64,15 +66,15 @@ const FacturaList: React.FC = () => {
   return (
     <div className="container mt-5">
       <div className="d-flex justify-content-between mb-5">
-        <h2>Listado de Facturas</h2>
+        <h2>{t("listado_de_facturas")}</h2>
         <BuscadorFacturas onSearch={handleSearch} />
       </div>
       <table className="table mt-4">
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Total Facturación</th>
-            <th>Acciones</th>
+            <th>{t("fecha")}</th>
+            <th>{t("total_facturacion")}</th>
+            <th>{t("acciones")}</th>
           </tr>
         </thead>
         <tbody>
@@ -98,14 +100,14 @@ const FacturaList: React.FC = () => {
           onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
           disabled={page === 1}
         >
-          Anterior
+          {t("anterior")}
         </button>
         <button
           className="btn btn-secondary"
           onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={page === totalPages}
         >
-          Siguiente
+          {t("siguiente")}
         </button>
       </div>
     </div>

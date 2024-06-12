@@ -6,6 +6,7 @@ import { OrderToCreate } from "../interfaces/order";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import QuantitySelector from "./QuantitySelector";
+import { useTranslation } from "react-i18next";
 
 interface OrderFormProps {
   onClose: () => void;
@@ -13,6 +14,7 @@ interface OrderFormProps {
 
 const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
   const { userId } = useUser();
+  const { t } = useTranslation();
   const { addOrder, salas, comidas, error, clearError } = useOrders();
 
   const [mesaId, setMesaId] = useState("");
@@ -120,13 +122,13 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
     ) {
       newPlatos[index].cantidad! -= 1;
     } else if (newPlatos[index]) {
-      newPlatos[index].cantidad = 1; // Minimum quantity should be 1
+      newPlatos[index].cantidad = 1;
     }
     setPlatosSeleccionados(newPlatos);
   };
 
   const isAddOrderDisabled = platosSeleccionados.some((plato) => !plato._id);
-  console.log("userId", userId);
+
   return (
     <div>
       {error && (
@@ -136,19 +138,19 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
         </div>
       )}
       <div className="mb-4">
-        <label htmlFor="mesaSelect">Mesa</label>
+        <label htmlFor="mesaSelect">{t("mesa")}</label>
         <select
           id="mesaSelect"
           className="form-select"
           value={mesaId}
           onChange={(e) => setMesaId(e.target.value)}
         >
-          <option value="">Seleccione una mesa</option>
+          <option value="">{t("seleccione_una_mesa")}</option>
           {salas.map((sala) => (
             <optgroup key={sala._id} label={sala.nombre}>
               {sala.mesas.map((mesa) => (
                 <option key={mesa._id} value={mesa._id}>
-                  Mesa {mesa.numero} (Capacidad: {mesa.capacidad})
+                  {t("mesa")} {mesa.numero} ({t("capacidad")}: {mesa.capacidad})
                 </option>
               ))}
             </optgroup>
@@ -158,7 +160,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
 
       <div className="d-flex justify-content-center mb-3">
         <button className="btn boton-anyadir bluebton" onClick={handleAddPlato}>
-          Añadir Plato
+          {t("add_plato")}
         </button>
       </div>
 
@@ -170,7 +172,7 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
             value={plato._id}
             onChange={(e) => handlePlatoChange(index, e.target.value)}
           >
-            <option value="">Seleccione un plato</option>
+            <option value="">{t("seleccione_plato")}</option>
             {comidas.map((comida) => (
               <optgroup key={comida._id} label={comida.tipo}>
                 {comida.platos.map((platoItem) => (
@@ -204,14 +206,14 @@ const OrderForm: React.FC<OrderFormProps> = ({ onClose }) => {
 
       <div className="d-flex justify-content-between mt-4">
         <div>
-          <strong>Total:</strong> {total.toFixed(2)}
+          <strong>{t("total")}:</strong> {total.toFixed(2)}
         </div>
         <button
           className="btn boton-anyadir greenbton"
           onClick={handleAddOrder}
           disabled={isAddOrderDisabled}
         >
-          Crear Pedido
+          {t("crear_pedido")}
         </button>
       </div>
     </div>

@@ -4,6 +4,8 @@ import axios from "../api/axios";
 import { formatDate } from "../utils/dateUtils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import LoaderComponent from "./LoaderComponent";
+import { useTranslation } from "react-i18next";
 
 interface Factura {
   _id: string;
@@ -25,7 +27,8 @@ interface Factura {
 }
 
 const FacturaDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Aquí, id es identificador_pedido
+  const { t } = useTranslation();
+  const { id } = useParams<{ id: string }>();
   const [factura, setFactura] = useState<Factura | null>(null);
   const navigate = useNavigate();
 
@@ -42,25 +45,29 @@ const FacturaDetail: React.FC = () => {
     fetchFactura();
   }, [id]);
 
-  if (!factura) return <div>Loading...</div>;
+  if (!factura) return <LoaderComponent />;
 
   return (
     <div className="container mt-5">
       <button className="btn btn-secondary mb-3" onClick={() => navigate(-1)}>
-        <FontAwesomeIcon icon={faArrowLeft} /> Volver
+        <FontAwesomeIcon icon={faArrowLeft} /> {t("volver")}
       </button>
-      <h2>Detalle de la Factura</h2>
+      <h2>{t("detalle_factura")}</h2>
       <div className="mt-3">
-        <h4>Fecha: {formatDate(factura.fecha)}</h4>
-        <h4>Total Facturación: {factura.facturacion_total.toFixed(2)}€</h4>
+        <h4>
+          {t("fecha")}: {formatDate(factura.fecha)}
+        </h4>
+        <h4>
+          {t("total_facturacion")}: {factura.facturacion_total.toFixed(2)}€
+        </h4>
       </div>
       <table className="table mt-4">
         <thead>
           <tr>
-            <th>Plato</th>
-            <th>Precio</th>
-            <th>Cantidad</th>
-            <th>Suma</th>
+            <th>{t("plato")}</th>
+            <th>{t("precio")}</th>
+            <th>{t("cantidad")}</th>
+            <th>{t("suma")}</th>
           </tr>
         </thead>
         <tbody>
@@ -75,16 +82,20 @@ const FacturaDetail: React.FC = () => {
         </tbody>
       </table>
       <div className="mt-3">
-        <h5>Subtotal: {factura.subtotal.toFixed(2)}€</h5>
         <h5>
-          Impuesto (IVA {factura.impuesto * 100}%):{" "}
+          {t("subtotal")}: {factura.subtotal.toFixed(2)}€
+        </h5>
+        <h5>
+          {t("impuesto")} (IVA {factura.impuesto * 100}%):{" "}
           {factura.importe_iva.toFixed(2)}€
         </h5>
         <h5>
-          Propina ({factura.tipo_propina}%):{" "}
+          {t("propina")} ({factura.tipo_propina}%):{" "}
           {factura.importe_propina.toFixed(2)}€
         </h5>
-        <h4>Total: {factura.total.toFixed(2)}€</h4>
+        <h4>
+          {t("total")}: {factura.total.toFixed(2)}€
+        </h4>
       </div>
     </div>
   );
