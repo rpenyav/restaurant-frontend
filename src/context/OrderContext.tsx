@@ -5,6 +5,7 @@ import React, {
   ReactNode,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
 import {
   fetchOrders as fetchOrdersService,
@@ -58,123 +59,161 @@ export const OrderProvider: React.FC<OrderProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const addOrder = async (order: OrderToCreate) => {
-    try {
-      const newOrder = await addOrderService(order);
-      setOrders([...orders, newOrder]);
-      setError(null);
-    } catch (error: any) {
-      setError(
-        `Error adding order: ${error.response?.data?.message || error.message}`
-      );
-    }
-  };
+  const addOrder = useCallback(
+    async (order: OrderToCreate) => {
+      try {
+        const newOrder = await addOrderService(order);
+        setOrders((prevOrders) => [...prevOrders, newOrder]);
+        setError(null);
+      } catch (error: any) {
+        setError(
+          `Error adding order: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    },
+    [orders]
+  );
 
-  const getOrderById = async (id: string): Promise<Order | null> => {
-    try {
-      const order = await getOrderByIdService(id);
-      setError(null);
-      return order;
-    } catch (error: any) {
-      setError(
-        `Error fetching order: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-      return null;
-    }
-  };
+  const getOrderById = useCallback(
+    async (id: string): Promise<Order | null> => {
+      try {
+        const order = await getOrderByIdService(id);
+        setError(null);
+        return order;
+      } catch (error: any) {
+        setError(
+          `Error fetching order: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+        return null;
+      }
+    },
+    []
+  );
 
-  const updateOrder = async (order: Order) => {
-    if (order.estado === "closed") return;
-    try {
-      const updatedOrder = await updateOrderService(order);
-      setOrders(orders.map((o) => (o._id === order._id ? updatedOrder : o)));
-      setError(null);
-    } catch (error: any) {
-      setError(
-        `Error updating order: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    }
-  };
+  const updateOrder = useCallback(
+    async (order: Order) => {
+      if (order.estado === "closed") return;
+      try {
+        const updatedOrder = await updateOrderService(order);
+        setOrders((prevOrders) =>
+          prevOrders.map((o) => (o._id === order._id ? updatedOrder : o))
+        );
+        setError(null);
+      } catch (error: any) {
+        setError(
+          `Error updating order: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    },
+    [orders]
+  );
 
-  const changeOrderState = async (id: string, newState: string) => {
-    try {
-      const updatedOrder = await changeOrderStateService(id, newState);
-      setOrders(
-        orders.map((order) => (order._id === id ? updatedOrder : order))
-      );
-      setError(null);
-    } catch (error: any) {
-      setError(
-        `Error changing order state: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    }
-  };
+  const changeOrderState = useCallback(
+    async (id: string, newState: string) => {
+      try {
+        const updatedOrder = await changeOrderStateService(id, newState);
+        setOrders((prevOrders) =>
+          prevOrders.map((order) => (order._id === id ? updatedOrder : order))
+        );
+        setError(null);
+      } catch (error: any) {
+        setError(
+          `Error changing order state: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    },
+    [orders]
+  );
 
-  const deleteOrder = async (id: string) => {
-    try {
-      await deleteOrderService(id);
-      setOrders(orders.filter((order) => order._id !== id));
-      setError(null);
-    } catch (error: any) {
-      setError(
-        `Error deleting order: ${
-          error.response?.data?.message || error.message
-        }`
-      );
-    }
-  };
+  const deleteOrder = useCallback(
+    async (id: string) => {
+      try {
+        await deleteOrderService(id);
+        setOrders((prevOrders) =>
+          prevOrders.filter((order) => order._id !== id)
+        );
+        setError(null);
+      } catch (error: any) {
+        setError(
+          `Error deleting order: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    },
+    [orders]
+  );
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
-  const fetchSalas = async () => {
+  const fetchSalas = useCallback(async () => {
     try {
       const data = await fetchSalasService();
       setSalas(data);
     } catch (error) {
       console.error("Error fetching salas:", error);
     }
-  };
+  }, []);
 
-  const fetchComidas = async () => {
+  const fetchComidas = useCallback(async () => {
     try {
       const data = await fetchComidasService();
       setComidas(data);
     } catch (error) {
       console.error("Error fetching comidas:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSalas();
     fetchComidas();
-  }, []);
+  }, [fetchSalas, fetchComidas]);
+
+  const contextValue = useMemo(
+    () => ({
+      orders,
+      error,
+      fetchOrders,
+      addOrder,
+      getOrderById,
+      updateOrder,
+      changeOrderState,
+      deleteOrder,
+      clearError,
+      salas,
+      comidas,
+      fetchSalas,
+      fetchComidas,
+    }),
+    [
+      orders,
+      error,
+      fetchOrders,
+      addOrder,
+      getOrderById,
+      updateOrder,
+      changeOrderState,
+      deleteOrder,
+      clearError,
+      salas,
+      comidas,
+      fetchSalas,
+      fetchComidas,
+    ]
+  );
 
   return (
-    <OrderContext.Provider
-      value={{
-        orders,
-        error,
-        fetchOrders,
-        addOrder,
-        getOrderById,
-        updateOrder,
-        changeOrderState,
-        deleteOrder,
-        clearError,
-        salas,
-        comidas,
-        fetchSalas,
-        fetchComidas,
-      }}
-    >
+    <OrderContext.Provider value={contextValue}>
       {children}
     </OrderContext.Provider>
   );

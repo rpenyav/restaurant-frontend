@@ -1,5 +1,3 @@
-import { Plato } from "./plato";
-
 export interface Order {
   _id?: string;
   mesa_id: string;

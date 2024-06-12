@@ -1,74 +1,14 @@
-import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import axios from "../api/axios";
-import { User } from "../interfaces/user";
+import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
+import useUserProfileForm from "../hooks/useUserProfileForm";
+import usePasswordVisibility from "../hooks/usePasswordVisibility";
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
-  const [formData, setFormData] = useState<User>({
-    _id: user?._id || "",
-    name: user?.name || "",
-    surname: user?.surname || "",
-    email: user?.email || "",
-    address: user?.address || "",
-    postalcode: user?.postalcode || "",
-    phone1: user?.phone1 || "",
-    role: user?.role || "guest",
-    isActive: user?.isActive || false,
-    password: "",
-  });
-  const [passwordVisible, setPasswordVisible] = useState(false);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (
-      !formData.name ||
-      !formData.surname ||
-      !formData.email ||
-      !formData.role
-    ) {
-      Swal.fire({
-        title: t("swal_title_error"),
-        text: t("swal_fields_required"),
-        icon: "error",
-        confirmButtonText: t("swal_confirm_button"),
-      });
-      return;
-    }
-
-    try {
-      await axios.put(`/users/${user?._id}`, formData);
-      Swal.fire({
-        title: t("swal_title_success"),
-        text: t("swal_user_updated_ok"),
-        icon: "success",
-        confirmButtonText: t("swal_accept_button"),
-      });
-    } catch (error) {
-      console.error("Error updating user:", error);
-      Swal.fire({
-        title: t("swal_title_error"),
-        text: t("swal_error_updating_user_text"),
-        icon: "error",
-        confirmButtonText: t("swal_accept_button"),
-      });
-    }
-  };
+  const { formData, handleChange, handleSubmit } = useUserProfileForm();
+  const { passwordVisible, togglePasswordVisibility } = usePasswordVisibility();
 
   return (
     <div className="container mt-5">
@@ -155,7 +95,7 @@ const UserProfile: React.FC = () => {
 
               <div className="mb-3">
                 <div className="row">
-                  {user?.role === "admin" && (
+                  {formData.role === "admin" && (
                     <div className="col">
                       <label className="form-label">{t("form_role")} *</label>
                       <select
@@ -186,7 +126,7 @@ const UserProfile: React.FC = () => {
                       <button
                         type="button"
                         className="btn btn-outline-secondary"
-                        onClick={() => setPasswordVisible(!passwordVisible)}
+                        onClick={togglePasswordVisibility}
                       >
                         <FontAwesomeIcon
                           icon={passwordVisible ? faEyeSlash : faEye}

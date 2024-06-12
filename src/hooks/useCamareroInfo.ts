@@ -1,4 +1,3 @@
-// src/hooks/useCamareroInfo.ts
 import { useState, useEffect } from "react";
 import { fetchUserById } from "../services/userService";
 

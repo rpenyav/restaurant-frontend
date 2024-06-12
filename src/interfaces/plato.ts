@@ -12,5 +12,5 @@ export interface Plato {
     _id: string;
   };
   comidaId: string;
-  cantidad?: number; // Añadir cantidad aquí para los platos en pedidos
+  cantidad?: number;
 }

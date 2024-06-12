@@ -1,4 +1,3 @@
-// interfaces/factura.ts
 export interface Desglose {
   plato: string;
   precio: number;
@@ -7,7 +6,7 @@ export interface Desglose {
 }
 
 export interface Factura {
-  _id: string; // Añadir esta propiedad
+  _id: string;
   fecha: string;
   facturacion_total: number;
   identificador_pedido: string;

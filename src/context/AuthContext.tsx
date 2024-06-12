@@ -1,10 +1,10 @@
-// AuthContext.tsx
 import React, {
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
+  useMemo,
 } from "react";
 import axios from "../api/axios";
 import Cookies from "js-cookie";
@@ -106,20 +106,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const contextValue = useMemo(
+    () => ({
+      isAuthenticated,
+      loading,
+      userLoaded,
+      login,
+      logout,
+      user,
+      error,
+    }),
+    [isAuthenticated, loading, userLoaded, user, error]
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        loading,
-        userLoaded,
-        login,
-        logout,
-        user,
-        error,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

@@ -1,4 +1,3 @@
-// src/hooks/useOrderInfo.ts
 import { useState, useEffect } from "react";
 import { fetchSalaByMesaId } from "../services/salaService";
 

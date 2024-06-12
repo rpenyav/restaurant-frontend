@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useMemo } from "react";
 import { useAuth } from "./AuthContext";
 
 interface UserContextType {
@@ -12,14 +12,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const { user } = useAuth();
-  const userId = user ? user._id : null;
-  const userRole = user ? user.role : null;
+  const userId = useMemo(() => (user ? user._id : null), [user]);
+  const userRole = useMemo(() => (user ? user.role : null), [user]);
 
-  return (
-    <UserContext.Provider value={{ userId, userRole }}>
-      {children}
-    </UserContext.Provider>
-  );
+  const value = useMemo(() => ({ userId, userRole }), [userId, userRole]);
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
 export const useUser = (): UserContextType => {
