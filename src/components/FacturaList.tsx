@@ -5,17 +5,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 import BuscadorFacturas from "./BuscadorFacturas";
 import useSearch from "../hooks/useSearch";
-import useFacturaList from "src/hooks/useFacturaList";
+import useFacturaList from "../hooks/useFacturaList"; // Asegúrate de que la ruta es correcta
+import { FacturaSearch } from "../interfaces/factura"; // Import the correct type for Factura
 
 const FacturaList: React.FC = () => {
   const { t } = useTranslation();
   const { facturas, page, totalPages, setPage, loading } = useFacturaList();
-  const { filteredFacturas, handleSearch } = useSearch(facturas);
+  const { filteredFacturas, handleSearch } = useSearch(
+    facturas as FacturaSearch[]
+  ); // Cast facturas to the correct type
   const navigate = useNavigate();
 
   const handleViewDetail = (pedidoId: string) => {
     navigate(`/factura-detail/${pedidoId}`);
   };
+
+  console.log("facturas", facturas); // Verifica que facturas esté correcto aquí
+  console.log("filteredFacturas", filteredFacturas); // Verifica filteredFacturas
 
   return (
     <div className="container mt-5">
@@ -59,14 +65,16 @@ const FacturaList: React.FC = () => {
       <div className="d-flex justify-content-between">
         <button
           className="btn btn-secondary"
-          onClick={() => setPage((prev: any) => Math.max(prev - 1, 1))}
+          onClick={() => setPage((prev: number) => Math.max(prev - 1, 1))}
           disabled={page === 1}
         >
           {t("anterior")}
         </button>
         <button
           className="btn btn-secondary"
-          onClick={() => setPage((prev: any) => Math.min(prev + 1, totalPages))}
+          onClick={() =>
+            setPage((prev: number) => Math.min(prev + 1, totalPages))
+          }
           disabled={page === totalPages}
         >
           {t("siguiente")}

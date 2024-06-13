@@ -97,3 +97,9 @@ code {
   color: #521010;
   text-decoration: underline;
 }
+
+@media print {
+  .no-print {
+    display: none;
+  }
+}

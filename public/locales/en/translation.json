@@ -7,6 +7,7 @@
     "bartender": "Bartender",
     "footer_text": "Restaurant. All rights reserved",
     "pedidos": "Orders",
+    "pedido": "Order",
     "facturas": "Invoices",
     "new_order": "New Order",
     "swal_title_error": "Error",

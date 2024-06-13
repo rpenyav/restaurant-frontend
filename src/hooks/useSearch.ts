@@ -1,17 +1,25 @@
-import { useState } from "react";
-import { FacturaSearch } from "../interfaces/factura";
-import { formatDate } from "../utils/dateUtils";
+import { useState, useEffect } from "react";
+import { Factura } from "src/interfaces/factura";
 
-const useSearch = (facturas: FacturaSearch[]) => {
+interface SearchData {
+  filteredFacturas: Factura[];
+  handleSearch: (searchTerm: string) => void;
+}
+
+const useSearch = (initialData: Factura[]): SearchData => {
   const [filteredFacturas, setFilteredFacturas] =
-    useState<FacturaSearch[]>(facturas);
+    useState<Factura[]>(initialData);
+
+  useEffect(() => {
+    setFilteredFacturas(initialData);
+  }, [initialData]);
 
   const handleSearch = (searchTerm: string) => {
     if (searchTerm.trim() === "") {
-      setFilteredFacturas(facturas);
+      setFilteredFacturas(initialData);
     } else {
-      const filtered = facturas.filter((factura) => {
-        const fecha = formatDate(factura.fecha);
+      const filtered: Factura[] = initialData.filter((factura: Factura) => {
+        const fecha: string = new Date(factura.fecha).toLocaleDateString();
         return (
           factura.identificador_pedido
             .toLowerCase()
@@ -24,10 +32,7 @@ const useSearch = (facturas: FacturaSearch[]) => {
     }
   };
 
-  return {
-    filteredFacturas,
-    handleSearch,
-  };
+  return { filteredFacturas, handleSearch };
 };
 
 export default useSearch;

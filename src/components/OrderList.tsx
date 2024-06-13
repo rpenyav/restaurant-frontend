@@ -14,6 +14,7 @@ import useOrderList from "../hooks/useOrderList";
 import useAlert from "../hooks/useAlert";
 import BuscadorPedidos from "./BuscadorPedidos";
 import { formatDateToDDMMYYYY } from "../utils/dateUtils";
+import LoaderComponent from "./LoaderComponent";
 
 const OrderList: React.FC = () => {
   const navigate = useNavigate();
