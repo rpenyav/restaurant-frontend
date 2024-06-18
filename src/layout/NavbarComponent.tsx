@@ -10,6 +10,7 @@ const NavbarComponent: React.FC = () => {
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
   };
+
   return (
     <nav>
       <Link className="navbar-brand" to="/orders">
@@ -17,11 +18,17 @@ const NavbarComponent: React.FC = () => {
       </Link>{" "}
       |{" "}
       {user?.role === "admin" && (
-        <Link className="navbar-brand" to="/facturas">
-          {t("facturas")}
-        </Link>
-      )}{" "}
-      |{" "}
+        <>
+          <Link className="navbar-brand" to="/facturas">
+            {t("facturas")}
+          </Link>{" "}
+          |{" "}
+          <Link className="navbar-brand" to="/salas-mesas">
+            {t("salas_y_mesas")}
+          </Link>{" "}
+          |{" "}
+        </>
+      )}
       <button className="btn btn-listado" onClick={() => changeLanguage("en")}>
         EN
       </button>

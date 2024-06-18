@@ -70,5 +70,8 @@
     "total_facturacion": "Total Invoicing",
     "detalle_factura": "Invoice Detail",
     "buscar_pedidos": "Search orders...",
-    "buscar_facturas": "Search invoices..."
+    "buscar_facturas": "Search invoices...",
+    "volver": "Back",
+    "salas_y_mesas": "Sectors and tables",
+    "imprimir": "Print"
 }

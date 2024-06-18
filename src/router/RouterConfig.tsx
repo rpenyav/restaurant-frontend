@@ -17,6 +17,7 @@ import NotFound from "../components/NotfoundComponent";
 import PrivateRoute from "./PrivateRoute";
 import { AuthRoute } from "./AuthRoute";
 import UserProfile from "../components/UserProfile";
+import SalaMesasPage from "../components/SalaMesasPage"; // Importa el nuevo componente
 
 const RouterConfig: React.FC = () => {
   return (
@@ -71,7 +72,14 @@ const RouterConfig: React.FC = () => {
             </Layout>
           }
         />
-
+        <Route
+          path="/salas-mesas" // Agrega la nueva ruta
+          element={
+            <Layout>
+              <PrivateRoute element={SalaMesasPage} />
+            </Layout>
+          }
+        />
         <Route path="/" element={<Navigate to="/orders" />} />
         <Route
           path="/404"

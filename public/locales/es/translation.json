@@ -70,5 +70,8 @@
     "total_facturacion": "Total facturación",
     "detalle_factura": "Detalle de la Factura",
     "buscar_pedidos": "Buscar pedidos...",
-    "buscar_facturas": "Buscar facturas..."
+    "buscar_facturas": "Buscar facturas...",
+    "volver": "Volver",
+    "salas_y_mesas": "Salas y Mesas",
+    "imprimir": "Imprimir"
 }
